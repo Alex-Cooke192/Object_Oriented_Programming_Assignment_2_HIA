@@ -75,7 +75,7 @@ SaveConfigAsync()
 # Commenting and Documentation
 
 Use /// for structured documentation comments that appear above public classes, methods or properties in C#. <br>
-Include tags such as (<summary>), (<param>), and (<returns>).
+Include tags such as (summary), (param), and (returns).
 
 ```C#
 /// <summary>
@@ -121,11 +121,11 @@ seat.ReclineAngle = Math.Clamp(seat.ReclineAngle, 0, MaxRecline);
   - Contains only reviewed and tested code.
 - feature
   - For developing new modules or functionality
-    - feature/HAI-(<ticket-number>)-(<ticket-name>)
+    - feature/HAI-(ticket-number)-(ticket-name)
     - e.g. feature/HAI-1-add-seat-module
 - fix
   - For fixing bugs
-  - fix/(<issue>)
+  - fix/(issue)
   - e.g. fix/fixing-seat-error
 
 ## Commit Message Format
