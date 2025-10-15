@@ -1,12 +1,3 @@
-# Object_Oriented_Programming_Assignment_2_HIA
-
-- add project description
-- how to install and run the project
-- how to use the project
-- credits (who did which components)
-- if tests are written include how to run them
-  https://www.makeareadme.com/
-
 # Code Styling Guide
 
 ## Namespaces
@@ -27,7 +18,7 @@ JetConfiguration, IValidatable
 
 ## Methods
 
-PasCalCase()
+PascalCase()
 
 ```C#
 SaveConfig(), ValidateLayout()
@@ -75,10 +66,46 @@ PropertyChanged, ValidationCompletedEvent
 
 ## Async Methods
 
-PascalCase, suffi with "Async"
+PascalCase, suffix with "Async"
 
 ```C#
 SaveConfigAsync()
+```
+
+# Commenting and Documentation
+
+Use /// for structured documentation comments that appear above public classes, methods or properties in C#.
+Include tags such as <summary>, <param>, and <returns>.
+
+```C#
+/// <summary>
+/// Validates the current jet configuration against safety rules.
+/// </summary>
+/// <returns>True if the configuration passes all checks; otherwise, false.</returns>
+public bool ValidateLayout()
+{
+// Validation logic here
+return true;
+}
+```
+
+Use // for inline comments of short explanatory notes placed directly above or beside a specific line or block of code.
+
+Comments should:
+
+- Explain intent or reasoning
+- Clarify complex algorithms or edge cases
+- Be brief and relevant
+- Avoid stating the obvious
+
+```C#
+// Ensure aisle width meets minimum requirement
+if (aisleWidth < MinAisleWidth)
+    LogError("Aisle too narrow");
+
+// Clamp seat recline angle to safe range
+seat.ReclineAngle = Math.Clamp(seat.ReclineAngle, 0, MaxRecline);
+
 ```
 
 # Git Workflow and Branch Naming Conventions
@@ -96,7 +123,3 @@ SaveConfigAsync()
 ## Merging Branches
 
 ##
-
-```
-
-```
