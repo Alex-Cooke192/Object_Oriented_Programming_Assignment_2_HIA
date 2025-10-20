@@ -1,19 +1,18 @@
 public class User
 {
-    public string UserID { get; set; }
+    public Guid UserID { get; set; }
     public string Username { get; set; }
     public string Password { get; set; }
-    public List<JetConfiguration> JetConfigurations { get; set; }
 
-    public bool Authenticate(string username, string password)
+    public bool ValidatePassword(string inputPassword)
     {
-        // Simple example, usually you'd hash & check passwords securely
-        return this.Username == username && this.Password == password;
+        //Would want to replace with hashing in future
+        return Password == inputPassword;
     }
 
-    public bool Authorise()
+    public bool CheckConfigOwner(Guid configID)
     {
-        // Placeholder for authorization logic (e.g., check roles/permissions)
-        return true;
+        // Placeholder logic
+        return configID == UserID;
     }
 }
