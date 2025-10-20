@@ -44,6 +44,17 @@ public class LoginViewModel : INotifyPropertyChanged
     private void Login()
     {
         bool success = _authenticator.Authenticate(Username, Password);
+        if (Username == null)
+        {
+            StatusMessage = user?.IsLockedOut == true
+           ? "Too many failed attempts. Access locked."
+           : $"Login failed. Attempt {user?.FailedAttempts}/3.";
+            return;
+        }
+        else
+        {
+            StatusMessage = "Login successful.";
+        }
         StatusMessage = success ? "Login successful." : "Invalid credentials.";
     }
 
