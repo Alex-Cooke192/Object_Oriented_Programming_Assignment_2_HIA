@@ -1,59 +1,53 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using YourApp.Models;
 
-namespace YourApp.ViewModels
+public class LoginViewModel : INotifyPropertyChanged
 {
-    public class LoginViewModel : INotifyPropertyChanged
+    private string _username;
+    private string _password;
+    private string _statusMessage;
+    private readonly Authenticator _authenticator;
+
+    public LoginViewModel()
     {
-        private readonly Authenticator _authenticator;
-
-        public LoginViewModel()
+        var users = new List<User>
         {
-            _authenticator = new Authenticator();
-            LoginCommand = new RelayCommand(ExecuteLogin, CanExecuteLogin);
-        }
-
-        private string _username;
-        public string Username
-        {
-            get => _username;
-            set { _username = value; OnPropertyChanged(); }
-        }
-
-        private string _password;
-        public string Password
-        {
-            get => _password;
-            set { _password = value; OnPropertyChanged(); }
-        }
-
-        private string _statusMessage;
-        public string StatusMessage
-        {
-            get => _statusMessage;
-            set { _statusMessage = value; OnPropertyChanged(); }
-        }
-
-        public ICommand LoginCommand { get; }
-
-        private bool CanExecuteLogin(object parameter) => true;
-
-        private void ExecuteLogin(object parameter)
-        {
-            var user = _authenticator.Authenticate(Username, Password);
-
-            if (user != null && _authenticator.Authorise(user))
-                StatusMessage = "Login successful!";
-            else
-                StatusMessage = "Invalid username or password.";
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        private void OnPropertyChanged([CallerMemberName] string propName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propName));
-        }
+            new User { UserID = Guid.NewGuid(), Username = "alex", Password = "1234" },
+            new User { UserID = Guid.NewGuid(), Username = "isobel", Password = "5678" },
+            new User { UserID = Guid.NewGuid(), Username = "hannah", Password = "1357" },
+        };
+        _authenticator = new Authenticator(users);
+        LoginCommand = new RelayCommand(Login);
     }
+
+    public string Username
+    {
+        get => _username;
+        set { _username = value; OnPropertyChanged(); }
+    }
+
+    public string Password
+    {
+        get => _password;
+        set { _password = value; OnPropertyChanged(); }
+    }
+
+    public string StatusMessage
+    {
+        get => _statusMessage;
+        set { _statusMessage = value; OnPropertyChanged(); }
+    }
+
+    public ICommand LoginCommand { get; }
+
+    private void Login()
+    {
+        bool success = _authenticator.Authenticate(Username, Password);
+        StatusMessage = success ? "Login successful." : "Invalid credentials.";
+    }
+
+    public event PropertyChangedEventHandler PropertyChanged;
+    protected void OnPropertyChanged([CallerMemberName] string name = null) =>
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 }
