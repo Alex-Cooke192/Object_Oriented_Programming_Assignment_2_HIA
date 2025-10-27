@@ -16,7 +16,7 @@ public interface IConfigurationRepository
     /// <summary>
     /// Saves all configuration entries asynchronously.
     /// </summary>
-    Task SaveAllAsync(IEnumerable<JetLayout> configs);
+    Task SaveAllAsync(Dictionary<string, JetLayout> configs);
 
     /// <summary>
     /// Saves a single configuration entry asynchronously.
