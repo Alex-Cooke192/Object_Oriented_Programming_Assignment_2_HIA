@@ -4,47 +4,54 @@ using Microsoft.EntityFrameworkCore;
 public class JsonConfigurationRepository
 {
     private readonly JetDbContext _db;
+    private readonly int _currentUserId;
     private readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public JsonConfigurationRepository(JetDbContext db)
+    public JsonConfigurationRepository(JetDbContext db, int currentUserId)
     {
         _db = db;
+        _currentUserId = currentUserId;
     }
 
-    public string ExportLayoutToJson()
+    // Load all configs for the current user and deserialize them
+    public List<JetLayout> LoadAll()
     {
-        var layout = new JetLayout
-        {
-            Layout = _db.JetLayoutCells
-                .AsNoTracking()
-                .Select(cell => new LayoutCell
-                {
-                    X = cell.X,
-                    Y = cell.Y,
-                    ComponentId = cell.ComponentId
-                })
-                .ToList()
-        };
+        var configs = _db.JetConfigs
+            .Where(c => c.UserId == _currentUserId)
+            .AsNoTracking()
+            .ToList();
 
-        return JsonSerializer.Serialize(layout, _options);
+        var layouts = new List<JetLayout>();
+
+        foreach (var config in configs)
+        {
+            if (!string.IsNullOrWhiteSpace(config.ConfigJson))
+            {
+                var layout = JsonSerializer.Deserialize<JetLayout>(config.ConfigJson, _options);
+                if (layout != null)
+                    layouts.Add(layout);
+            }
+        }
+
+        return layouts;
     }
 
-    public void ImportLayoutFromJson(string json)
+    // Save all layouts for the current user, overwriting existing configs
+    public void SaveAll(List<JetLayout> layouts)
     {
-        var layout = JsonSerializer.Deserialize<JetLayout>(json, _options);
-        if (layout == null) return;
+        var configs = _db.JetConfigs
+            .Where(c => c.UserId == _currentUserId)
+            .ToList();
 
-        _db.JetLayoutCells.RemoveRange(_db.JetLayoutCells); // Clear existing layout
-        _db.JetLayoutCells.AddRange(layout.Layout.Select(cell => new JetLayoutCellDB
+        for (int i = 0; i < configs.Count && i < layouts.Count; i++)
         {
-            X = cell.X,
-            Y = cell.Y,
-            ComponentId = cell.ComponentId
-        }));
+            configs[i].ConfigJson = JsonSerializer.Serialize(layouts[i], _options);
+            configs[i].UpdatedAt = DateTime.UtcNow;
+        }
 
         _db.SaveChanges();
     }
