@@ -1,3 +1,6 @@
+using JetInteriorApp.Models;
+
+
 /// <summary>
 /// Interface for accessing and persisting configuration data.
 /// Supports multiple storage formats (e.g., JSON, XML, SQL) via polymorphic implementations.
@@ -8,15 +11,15 @@ public interface IConfigurationRepository
     /// <summary>
     /// Loads all configuration entries asynchronously.
     /// </summary>
-    Task<IDictionary<string, ConfigurationItem>> LoadAllAsync();
+    Task<IDictionary<string, JetLayout>> LoadAllAsync();
 
     /// <summary>
     /// Saves all configuration entries asynchronously.
     /// </summary>
-    Task SaveAllAsync(IEnumerable<ConfigurationItem> configs);
+    Task SaveAllAsync(IEnumerable<JetLayout> configs);
 
     /// <summary>
     /// Saves a single configuration entry asynchronously.
     /// </summary>
-    Task SaveConfigAsync(ConfigurationItem config);
+    Task SaveConfigAsync(JetLayout config);
 }
