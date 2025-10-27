@@ -1,8 +1,8 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using JetInteriorApp.Models; 
+using JetInteriorApp.Models;
 
-public class JsonConfigurationRepository
+public class JsonConfigurationRepository : IConfigurationRepository
 {
     private readonly JetDbContext _db;
     private readonly int _currentUserId;
@@ -19,14 +19,14 @@ public class JsonConfigurationRepository
     }
 
     // Load all configs for the current user and deserialize them
-    public List<JetLayout> LoadAll()
+    public async Task<IDictionary<string, JetLayout>> LoadAllAsync()
     {
-        var configs = _db.JetConfigs
+        var configs = await _db.JetConfigs
             .Where(c => c.UserId == _currentUserId)
             .AsNoTracking()
-            .ToList();
+            .ToListAsync();
 
-        var layouts = new List<JetLayout>();
+        var layouts = new Dictionary<string, JetLayout>();
 
         foreach (var config in configs)
         {
@@ -34,26 +34,34 @@ public class JsonConfigurationRepository
             {
                 var layout = JsonSerializer.Deserialize<JetLayout>(config.ConfigJson, _options);
                 if (layout != null)
-                    layouts.Add(layout);
+                    layouts.Add(config.Name, layout); // ✅ Use a valid key
             }
         }
 
         return layouts;
     }
-
     // Save all layouts for the current user, overwriting existing configs
-    public void SaveAll(List<JetLayout> layouts)
+    public async Task SaveAllAsync(Dictionary<string, JetLayout> configs)
     {
-        var configs = _db.JetConfigs
-            .Where(c => c.UserId == _currentUserId)
-            .ToList();
-
-        for (int i = 0; i < configs.Count && i < layouts.Count; i++)
+        foreach (var layout in configs)
         {
-            configs[i].ConfigJson = JsonSerializer.Serialize(layouts[i], _options);
-            configs[i].UpdatedAt = DateTime.UtcNow;
+            var json = JsonSerializer.Serialize(layout);
+            var config = new JetConfigDB
+            {
+                UserId = _currentUserId,
+                ConfigJson = json,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _db.JetConfigs.Add(config);
         }
 
-        _db.SaveChanges();
+        await _db.SaveChangesAsync();
+    }
+    public async Task SaveConfigAsync(JetLayout config)
+    {
+        // Intentionally does nothing
+        await Task.CompletedTask;
     }
 }
