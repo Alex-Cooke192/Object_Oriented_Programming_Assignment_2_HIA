@@ -43,6 +43,7 @@ public class DatabaseTester
         }
     }
     private async Task CheckJetConfigUserLinksAsync()
+    // Verified every layout is owned by a valid user
     {
         Console.WriteLine("\n🔗 Checking JetConfigs → Users foreign key integrity...");
 
