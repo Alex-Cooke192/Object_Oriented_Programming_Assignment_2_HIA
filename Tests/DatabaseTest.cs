@@ -25,6 +25,8 @@ public class DatabaseTester
         await TestTableAsync("KitchenProperties", _db.KitchenProperties.CountAsync());
         await TestTableAsync("EmergencyExitProperties", _db.EmergencyExitProperties.CountAsync());
 
+        await CheckJetConfigUserLinksAsync();
+
         Console.WriteLine("\n✅ All table checks complete.");
     }
 
