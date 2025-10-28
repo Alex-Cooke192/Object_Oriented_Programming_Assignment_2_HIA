@@ -11,12 +11,12 @@ public interface IConfigurationRepository
     /// <summary>
     /// Loads all configuration entries asynchronously.
     /// </summary>
-    Task<IDictionary<string, JetLayout>> LoadAllAsync();
+    Task<IDictionary<Guid, JetLayout>> LoadAllAsync();
 
     /// <summary>
     /// Saves all configuration entries asynchronously.
     /// </summary>
-    Task SaveAllAsync(Dictionary<string, JetLayout> configs);
+    Task SaveAllAsync(Dictionary<Guid, JetLayout> configs);
 
     /// <summary>
     /// Saves a single configuration entry asynchronously.
