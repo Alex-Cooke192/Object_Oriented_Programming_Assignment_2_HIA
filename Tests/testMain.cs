@@ -7,7 +7,7 @@ namespace JetInteriorApp.Tests
         public static async Task RunAllAsync()
         {
             var options = new DbContextOptionsBuilder<JetDbContext>()
-                .UseSqlite("Data Source=Object_Oriented_Programming_Assignment_2_HIA-HAI_29-add-c-database/Data/jetconfigs.db")
+                .UseSqlite("Data Source=Data/jetconfigs.db")
                 .Options;
 
             using var db = new JetDbContext(options);
