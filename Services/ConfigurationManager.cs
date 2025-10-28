@@ -1,4 +1,5 @@
 using System.Text.Json;
+using JetInteriorApp.Models; 
 
 
 namespace JetInteriorSystem.Services.Configuration
@@ -6,7 +7,7 @@ namespace JetInteriorSystem.Services.Configuration
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
         private readonly IConfigurationRepository _repository;
-        private readonly List<JetConfiguration> _inMemoryConfigs;
+        private readonly List<JetLayout> _inMemoryConfigs;
 
         public ConfigurationManager(IConfigurationRepository repository)
         {
@@ -14,10 +15,10 @@ namespace JetInteriorSystem.Services.Configuration
             _inMemoryConfigs = LoadAllFromRepository();
         }
 
-        private List<JetConfiguration> LoadAllFromRepository()
+        private List<JetLayout> LoadAllFromRepository()
         {
             var raw = _repository.LoadAll(); // Dictionary<Guid, string>
-            var configs = new List<JetConfiguration>();
+            var configs = new List<JetLayout>();
 
             foreach (var kvp in raw)
             {
@@ -41,12 +42,13 @@ namespace JetInteriorSystem.Services.Configuration
             return configs;
         }
 
-        public JetConfiguration GetConfiguration(Guid id)
+        public JetLayout GetConfiguration(Guid id)
         {
             return _inMemoryConfigs.FirstOrDefault(c => c.ID == id);
         }
 
-        public JetConfiguration CreateConfiguration(Guid userId, string layoutName, JetLayout layout)
+
+        public JetLayout CreateConfiguration(Guid userId, string layoutName, JetLayout layout)
         {
             var newId = Guid.NewGuid();
             layout.UserId = userId;
