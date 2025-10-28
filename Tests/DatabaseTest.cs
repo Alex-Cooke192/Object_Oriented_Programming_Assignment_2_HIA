@@ -40,4 +40,21 @@ public class DatabaseTester
             Console.WriteLine($"❌ {tableName}: Error - {ex.Message}");
         }
     }
+    private async Task CheckJetConfigUserLinksAsync()
+    {
+        Console.WriteLine("\n🔗 Checking JetConfigs → Users foreign key integrity...");
+
+        var validUserIds = await _db.Users.Select(u => u.Id).ToListAsync();
+        var configs = await _db.JetConfigs.ToListAsync();
+
+        foreach (var config in configs)
+        {
+            if (!validUserIds.Contains(config.UserId))
+            {
+                Console.WriteLine($"❌ JetConfig '{config.Name}' has invalid UserId: {config.UserId}");
+            }
+        }
+
+        Console.WriteLine("✔ JetConfig user link check complete.");
+    }
 }
