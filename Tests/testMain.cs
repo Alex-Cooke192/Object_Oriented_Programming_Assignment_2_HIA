@@ -11,7 +11,6 @@ namespace JetInteriorApp.Tests
                 .Options;
 
             using var db = new JetDbContext(options);
-            db.Database.EnsureCreated();
 
             var tester = new DatabaseTester(db);
             await tester.RunTestsAsync();
