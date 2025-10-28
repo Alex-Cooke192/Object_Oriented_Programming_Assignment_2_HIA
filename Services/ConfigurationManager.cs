@@ -46,11 +46,6 @@ namespace JetInteriorSystem.Services.Configuration
             return _inMemoryConfigs.FirstOrDefault(c => c.ID == id);
         }
 
-        public List<JetConfiguration> GetConfigurationsForUser(Guid userId)
-        {
-            return _inMemoryConfigs.Where(c => c.UserId == userId).ToList();
-        }
-
         public JetConfiguration CreateConfiguration(Guid userId, string layoutName, JetLayout layout)
         {
             var newId = Guid.NewGuid();
