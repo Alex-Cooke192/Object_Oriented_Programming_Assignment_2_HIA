@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 
 public class JetDbContext : DbContext
 {
+     public JetDbContext(DbContextOptions<JetDbContext> options) : base(options) { }
     public DbSet<UserDB> Users { get; set; }
     public DbSet<JetConfigDB> JetConfigs { get; set; }
     public DbSet<InteriorComponentDB> InteriorComponents { get; set; }
