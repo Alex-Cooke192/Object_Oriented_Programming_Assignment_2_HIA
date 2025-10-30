@@ -1,42 +1,43 @@
-using JetInteriorApp.Models;
-
-public interface IConfigurationServiceWriter
+namespace JetInteriorApp.Interfaces
 {
-    /// <summary>
-    /// Creates a new configuration and returns the resulting JetConfiguration.
-    /// </summary>
-    /// <param name="userId">The ID of the user who owns the configuration.</param>
-    /// <param name="layoutName">The name of the new layout.</param>
-    /// <param name="layout">The JetLayout object to store.</param>
-    /// <returns>The created JetConfiguration.</returns>
-    JetLayout CreateConfiguration(Guid userId, string Name, JetLayout layout);
+    public interface IConfigurationServiceWriter
+    {
+        /// <summary>
+        /// Creates a new configuration and returns the resulting JetConfiguration.
+        /// </summary>
+        /// <param name="userId">The ID of the user who owns the configuration.</param>
+        /// <param name="layoutName">The name of the new layout.</param>
+        /// <param name="layout">The JetLayout object to store.</param>
+        /// <returns>The created JetConfiguration.</returns>
+        JetLayout CreateConfiguration(Guid userId, string Name, JetLayout layout);
 
-    /// <summary>
-    /// Updates an existing configuration with new layout data.
-    /// </summary>
-    /// <param name="configId">The ID of the configuration to update.</param>
-    /// <param name="layout">The updated JetLayout object.</param>
-    /// <returns>True if the update was successful; otherwise, false.</returns>
-    bool UpdateConfiguration(Guid configId, JetLayout layout);
+        /// <summary>
+        /// Updates an existing configuration with new layout data.
+        /// </summary>
+        /// <param name="configId">The ID of the configuration to update.</param>
+        /// <param name="layout">The updated JetLayout object.</param>
+        /// <returns>True if the update was successful; otherwise, false.</returns>
+        bool UpdateConfiguration(Guid configId, JetLayout layout);
 
-    /// <summary>
-    /// Clones an existing configuration with a new Id
-    /// </summary>
-    /// <param name="configId">The ID of the configuration to update.</param>
-    /// <param name="layout">The JetLayout object. to be cloned</param>
-    /// <returns>The cloned JetLayout</returns>
-    JetLayout CloneConfiguration(Guid configId, JetLayout layout); 
+        /// <summary>
+        /// Clones an existing configuration with a new Id
+        /// </summary>
+        /// <param name="configId">The ID of the configuration to update.</param>
+        /// <param name="layout">The JetLayout object. to be cloned</param>
+        /// <returns>The cloned JetLayout</returns>
+        JetLayout CloneConfiguration(Guid configId, JetLayout layout);
 
-    /// <summary>
-    /// Deletes a configuration by its ID.
-    /// </summary>
-    /// <param name="configId">The ID of the configuration to delete.</param>
-    /// <returns>True if the deletion was successful; otherwise, false.</returns>
-    bool DeleteConfiguration(Guid configId);
+        /// <summary>
+        /// Deletes a configuration by its ID.
+        /// </summary>
+        /// <param name="configId">The ID of the configuration to delete.</param>
+        /// <returns>True if the deletion was successful; otherwise, false.</returns>
+        bool DeleteConfiguration(Guid configId);
 
-    /// <summary>
-    /// Saves all pending changes to the underlying data store.
-    /// </summary>
-    /// <returns>True if the save was successful; otherwise, false.</returns>
-    bool SaveAllChanges();
+        /// <summary>
+        /// Saves all pending changes to the underlying data store.
+        /// </summary>
+        /// <returns>True if the save was successful; otherwise, false.</returns>
+        bool SaveAllChanges();
+    }
 }
