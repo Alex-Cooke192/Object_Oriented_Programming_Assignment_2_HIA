@@ -1,6 +1,7 @@
 using System.Text.Json;
 using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces; 
+using JetInteriorApp.Interfaces;
+using System.ComponentModel;
 
 namespace JetInteriorApp.Services
 {
@@ -40,7 +41,8 @@ namespace JetInteriorApp.Services
                 full.Properties = await LoadPropertiesByType(comp.Id, comp.Type);
                 ComponentList.Add(full);
             }
-
+            return ComponentList;
+        }
         private async Task<object> LoadPropertiesByType(Guid componentId, string type)
         {
             return type.ToLower() switch
@@ -55,8 +57,6 @@ namespace JetInteriorApp.Services
                 "emergency_exit" => await _db.EmergencyExitProperties.FirstOrDefaultAsync(p => p.ComponentId == componentId),
                 _ => null
             };
-        }
-            return ComponentList;
         }
     }
 }
