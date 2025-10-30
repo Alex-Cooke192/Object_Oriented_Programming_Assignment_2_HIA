@@ -1,4 +1,5 @@
-using JetInteriorApp.Interfaces; 
+using JetInteriorApp.Interfaces;
+using JetInteriorApp.Models; 
 
 namespace JetInteriorApp.Interfaces
 {
