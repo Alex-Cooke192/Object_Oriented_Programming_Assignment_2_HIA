@@ -13,7 +13,8 @@ namespace JetInteriorApp.Interfaces
         /// <param name="layout">The JetLayout object to store.</param>
         /// <returns>The created JetConfiguration.</returns>
         JetLayout CreateConfiguration(Guid userId, string Name, JetLayout layout);
-
+        
+        /*
         /// <summary>
         /// Updates an existing configuration with new layout data.
         /// </summary>
@@ -21,7 +22,7 @@ namespace JetInteriorApp.Interfaces
         /// <param name="layout">The updated JetLayout object.</param>
         /// <returns>True if the update was successful; otherwise, false.</returns>
         bool UpdateConfiguration(Guid configId, JetLayout layout);
-
+        */
         /// <summary>
         /// Clones an existing configuration with a new Id
         /// </summary>
