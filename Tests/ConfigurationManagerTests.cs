@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
-using Xunit;
-using Moq;
-using JetInteriorSystem.Models;
-using JetInteriorSystem.Repositories;
-using JetInteriorSystem.Services.Configuration;
 
 public class ConfigurationManagerTests
 {
