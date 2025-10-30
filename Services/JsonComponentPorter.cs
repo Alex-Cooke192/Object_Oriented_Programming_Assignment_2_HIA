@@ -4,7 +4,7 @@ using JetInteriorApp.Interfaces;
 
 namespace JetInteriorApp.Services
 {
-    class JsonComponentPorter : IComponentRepositoryPorter
+    public class JsonComponentPorter : IComponentRepositoryPorter
     {
         public async Task<List<InteriorComponent>> GetFullComponentsForUser(Guid userId)
         {
