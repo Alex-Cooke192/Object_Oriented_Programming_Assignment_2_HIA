@@ -19,29 +19,43 @@ public class JsonConfigurationRepository : IConfigurationRepository
     }
 
     // Load all configs for the current user and deserialize them
-    public async Task<IDictionary<string, JetLayout>> LoadAllAsync()
+    public async Task<IDictionary<Guid, JetLayout>> LoadAllAsync()
+{
+    var configs = await _db.JetConfigs
+        .Where(c => c.UserId == _currentUserId)
+        .AsNoTracking()
+        .ToListAsync();
+
+    var layouts = new Dictionary<Guid, JetLayout>();
+
+    foreach (var config in configs)
     {
-        var configs = await _db.JetConfigs
-            .Where(c => c.UserId == _currentUserId)
-            .AsNoTracking()
-            .ToListAsync();
-
-        var layouts = new Dictionary<string, JetLayout>();
-
-        foreach (var config in configs)
+        if (!string.IsNullOrWhiteSpace(config.ConfigJson))
         {
-            if (!string.IsNullOrWhiteSpace(config.ConfigJson))
+            var layout = JsonSerializer.Deserialize<JetLayout>(config.ConfigJson, _options);
+            if (layout != null && layout.UserId == _currentUserId) // ✅ Filter by user
             {
-                var layout = JsonSerializer.Deserialize<JetLayout>(config.ConfigJson, _options);
-                if (layout != null)
-                    layouts.Add(config.Name, layout); // ✅ Use a valid key
+                layouts.Add(config.ID, layout);
             }
         }
-
-        return layouts;
     }
+
+    // Extract components from layouts belonging to the current user
+    var userComponents = layouts
+        .SelectMany(kvp => kvp.Value.Components.Select(c => new
+        {
+            LayoutId = kvp.Key,
+            ComponentId = c.ComponentId,
+            Coordinate = (c.X, c.Y)
+        }))
+        .ToList();
+
+    Console.WriteLine($"🔍 Found {userComponents.Count} components for user {_currentUserId}.");
+
+    return layouts;
+}
     // Save all layouts for the current user, overwriting existing configs
-    public async Task SaveAllAsync(Dictionary<string, JetLayout> configs)
+    public async Task SaveAllAsync(Dictionary<Guid, JetLayout> configs)
     {
         foreach (var layout in configs)
         {
