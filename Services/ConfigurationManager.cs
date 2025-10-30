@@ -1,6 +1,6 @@
 using System.Text.Json;
-using JetInteriorApp.Models; 
-
+using JetInteriorApp.Models;
+using JetInteriorApp.Interfaces; 
 
 namespace JetInteriorSystem.Services.Configuration
 {
