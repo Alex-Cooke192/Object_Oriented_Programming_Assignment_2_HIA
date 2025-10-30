@@ -2,7 +2,7 @@ using System.Text.Json;
 using JetInteriorApp.Models;
 using JetInteriorApp.Interfaces; 
 
-namespace JetInteriorSystem.Services.Configuration
+namespace JetInteriorApp.Services.Configuration
 {
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
@@ -25,7 +25,7 @@ namespace JetInteriorSystem.Services.Configuration
                 try
                 {
                     var layout = JsonSerializer.Deserialize<JetLayout>(kvp.Value);
-                    configs.Add(new JetConfiguration
+                    configs.Add(new JetLayout
                     {
                         ID = kvp.Key,
                         ConfigJson = kvp.Value,
@@ -55,7 +55,7 @@ namespace JetInteriorSystem.Services.Configuration
             layout.LayoutName = layoutName;
 
             var json = JsonSerializer.Serialize(layout);
-            var config = new JetConfiguration
+            var config = new JetLayout
             {
                 ID = newId,
                 UserId = userId,
@@ -67,7 +67,7 @@ namespace JetInteriorSystem.Services.Configuration
             return config;
         }
 
-        public JetConfiguration CloneConfiguration(Guid id)
+        public JetLayout CloneConfiguration(Guid id, JetLayout config)
         {
             var original = GetConfiguration(id);
             if (original == null) return null;
