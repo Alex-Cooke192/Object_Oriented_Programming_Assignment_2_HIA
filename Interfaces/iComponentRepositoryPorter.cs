@@ -1,4 +1,7 @@
-public interface IComponentPorter
+namespace JetInteriorApp.Interfaces
 {
-    Task<List<FantasyComponent>> GetFullComponentsForUser(Guid userId);
+    public interface IComponentPorter
+    {
+        Task<List<FantasyComponent>> GetFullComponentsForUser(Guid userId);
+    }
 }
