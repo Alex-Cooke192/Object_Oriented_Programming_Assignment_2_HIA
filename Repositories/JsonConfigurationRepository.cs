@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using JetInteriorApp.Models;
+using JetInteriorApp.Interfaces; 
 
 public class JsonConfigurationRepository : IConfigurationRepository
 {

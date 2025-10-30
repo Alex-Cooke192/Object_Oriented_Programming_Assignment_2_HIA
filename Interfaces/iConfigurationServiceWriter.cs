@@ -1,3 +1,5 @@
+using JetInteriorApp.Interfaces; 
+
 namespace JetInteriorApp.Interfaces
 {
     public interface IConfigurationServiceWriter

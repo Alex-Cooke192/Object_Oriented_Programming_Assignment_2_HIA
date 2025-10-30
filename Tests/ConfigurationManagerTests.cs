@@ -1,4 +1,5 @@
 using System.Text.Json;
+using JetInteriorApp.Models; 
 
 public class ConfigurationManagerTests
 {
