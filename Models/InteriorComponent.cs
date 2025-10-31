@@ -2,6 +2,7 @@ public class InteriorComponent
 {
     public Guid Id { get; set; }
     public Guid ConfigId { get; set; }
+    public string Name { get; set; }
     public string Type { get; set; } // e.g. "seat", "screen"
     public string position { get; set; }
     public string Material { get; set; }

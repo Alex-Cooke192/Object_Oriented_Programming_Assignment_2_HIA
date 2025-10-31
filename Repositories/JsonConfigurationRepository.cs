@@ -6,7 +6,7 @@ using JetInteriorApp.Interfaces;
 public class JsonConfigurationRepository : IConfigurationRepository
 {
     private readonly JetDbContext _db;
-    private readonly int _currentUserId;
+    private readonly Guid _currentUserId;
     private readonly JsonSerializerOptions _options = new()
     {
         WriteIndented = true,
@@ -57,23 +57,55 @@ public class JsonConfigurationRepository : IConfigurationRepository
 }
     // Save all layouts for the current user, overwriting existing configs
     public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
+{
+    foreach (var layoutEntry in configs)
     {
-        foreach (var layout in configs)
-        {
-            var json = JsonSerializer.Serialize(layout);
-            var config = new JetConfigDB
-            {
-                UserId = _currentUserId,
-                ConfigJson = json,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+        var layout = layoutEntry.Value;
+        var configId = layoutEntry.Key;
 
-            _db.JetConfigs.Add(config);
-        }
-        await _db.SaveChangesAsync();
-        return true; 
+        var config = new JetConfigDB
+        {
+            Id = configId,
+            UserId = _currentUserId,
+            Name = layout.Name,
+            Version = layout.Version,
+            ValidationStatus = layout.ValidationStatus,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            ConfigJson = JsonSerializer.Serialize(layout, _options),
+            InteriorComponents = layout.Components.Select(c => new InteriorComponentDB
+            {
+                Id = Guid.NewGuid(),
+                JetConfigId = configId,
+                Type = c.Type,
+                X = c.X,
+                Y = c.Y,
+                Width = c.Width,
+                Height = c.Height,
+
+                // Subtype navigation will be added below
+                KitchenProperties = c.Type == "Kitchen" ? new KitchenPropertiesDB
+                {
+                    ApplianceType = c.Kitchen.ApplianceType,
+                    HasIsland = c.Kitchen.HasIsland
+                } : null,
+
+                ChairProperties = c.Type == "Chair" ? new ChairPropertiesDB
+                {
+                    Material = c.Chair.Material,
+                    HasArmrest = c.Chair.HasArmrest
+                } : null
+
+                // Add other subtypes here as needed
+            }).ToList()
+        };
+
+        _db.JetConfigs.Add(config);
     }
+
+    await _db.SaveChangesAsync();
+    return true;
+}
     public async Task SaveConfigAsync(JetLayout config)
     {
         // Intentionally does nothing

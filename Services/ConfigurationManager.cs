@@ -1,9 +1,11 @@
 using System.Text.Json;
 using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces; 
+using JetInteriorApp.Interfaces;
 
 namespace JetInteriorApp.Services.Configuration
+
 {
+    /*
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
         private readonly IConfigurationRepository _repository;
@@ -101,4 +103,5 @@ namespace JetInteriorApp.Services.Configuration
             }
         }
     }
+    */
 }

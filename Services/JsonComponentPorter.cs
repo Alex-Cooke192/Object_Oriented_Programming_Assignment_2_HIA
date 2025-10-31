@@ -2,21 +2,26 @@ using System.Text.Json;
 using JetInteriorApp.Models;
 using JetInteriorApp.Interfaces;
 using System.ComponentModel;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection.Metadata.Ecma335;
 
 namespace JetInteriorApp.Services
 {
     public class JsonComponentPorter : IComponentRepositoryPorter
     {
+        private readonly JetDbContext _db; 
         public async Task<List<InteriorComponent>> GetFullComponentsForUser(Guid userId)
         {
-            var configs = await _db.JdcConfig
-                .Where(c => c.UserId == userId)
-                .Select(c => c.Id)
-                .ToListAsync();
+        // Step 1: Get all config IDs for the user
+        var configIds = await _db.JetConfigs
+            .Where(cfg => cfg.UserId == userId)
+            .Select(cfg => cfg.Id)
+            .ToListAsync();
 
-            var components = await _db.InteriorComponents
-                .Where(fc => configs.Contains(fc.ConfigId))
-                .ToListAsync();
+        // Step 2: Get all components linked to those configs
+        var components = await _db.InteriorComponents
+            .Where(comp => configIds.Contains(comp.ConfigID))
+            .ToListAsync();
 
             var ComponentList = new List<InteriorComponent>();
 
@@ -26,15 +31,12 @@ namespace JetInteriorApp.Services
                 {
                     Id = comp.Id,
                     ConfigId = comp.ConfigId,
-                    Type = comp.Type,
                     Name = comp.Name,
-                    Description = comp.Description,
+                    Type = comp.Type,
+                    position = comp.Position, 
                     Material = comp.Material,
                     Weight = comp.Weight,
-                    Cost = comp.Cost,
-                    Size = comp.Size,
                     Color = comp.Color,
-                    Accessibility = comp.Accessibility
                 };
 
                 // Load subtype properties based on type
