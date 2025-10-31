@@ -23,51 +23,57 @@ public class JetDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // User → JetConfigs (many-to-one)
-        modelBuilder.Entity<JetConfigDB>()
-            .HasOne(j => j.User)
-            .WithMany(u => u.JetConfigs)
-            .HasForeignKey(j => j.UserId);
+    // USER → JETCONFIGURATION (many-to-one)
+    modelBuilder.Entity<JetConfigDB>()
+        .HasOne(cfg => cfg.User)
+        .WithMany(u => u.JetConfigs)
+        .HasForeignKey(cfg => cfg.UserId);
 
-        // Component → Properties (one-to-one or one-to-many depending on design)
-        modelBuilder.Entity<SeatPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    // JETCONFIGURATION → INTERIOR COMPONENT
+    modelBuilder.Entity<InteriorComponentDB>()
+        .HasOne(comp => comp.Config)
+        .WithMany(cfg => cfg.InteriorComponents)
+        .HasForeignKey(comp => comp.ConfigID);
 
-        modelBuilder.Entity<ToiletPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    // Component → Properties (one-to-one or one-to-many depending on design)
+    modelBuilder.Entity<SeatPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
 
-        modelBuilder.Entity<TablePropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    modelBuilder.Entity<ToiletPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
 
-        modelBuilder.Entity<ScreenPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    modelBuilder.Entity<TablePropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
 
-        modelBuilder.Entity<LightingPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    modelBuilder.Entity<ScreenPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
 
-        modelBuilder.Entity<EmergencyExitPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    modelBuilder.Entity<LightingPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
 
-        modelBuilder.Entity<KitchenPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    modelBuilder.Entity<EmergencyExitPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
 
-        modelBuilder.Entity<StorageCabinetPropertiesDB>()
-            .HasOne(p => p.Component)
-            .WithMany()
-            .HasForeignKey(p => p.ComponentId);
+    modelBuilder.Entity<KitchenPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
+
+    modelBuilder.Entity<StorageCabinetPropertiesDB>()
+        .HasOne(p => p.Component)
+        .WithMany()
+        .HasForeignKey(p => p.ComponentId);
     }
 }

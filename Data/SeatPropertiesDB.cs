@@ -1,7 +1,7 @@
 public class SeatPropertiesDB
 {
-    public int Id { get; set; }
-    public int ComponentId { get; set; }
+    public Guid Id { get; set; }
+    public Guid ComponentId { get; set; }
     public bool Recline { get; set; }
     public bool Lighting { get; set; }
     public bool Massage { get; set; }
