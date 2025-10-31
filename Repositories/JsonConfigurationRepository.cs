@@ -34,9 +34,9 @@ public class JsonConfigurationRepository : IConfigurationRepository
         if (!string.IsNullOrWhiteSpace(config.ConfigJson))
         {
             var layout = JsonSerializer.Deserialize<JetLayout>(config.ConfigJson, _options);
-            if (layout != null && layout.UserId == _currentUserId) // ✅ Filter by user
+            if (layout != null) 
             {
-                layouts.Add(config.ID, layout);
+                layouts.Add(layout.ConfigID, layout);
             }
         }
     }
@@ -56,7 +56,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
     return layouts;
 }
     // Save all layouts for the current user, overwriting existing configs
-    public async Task SaveAllAsync(Dictionary<Guid, JetLayout> configs)
+    public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
     {
         foreach (var layout in configs)
         {
@@ -71,8 +71,8 @@ public class JsonConfigurationRepository : IConfigurationRepository
 
             _db.JetConfigs.Add(config);
         }
-
         await _db.SaveChangesAsync();
+        return true; 
     }
     public async Task SaveConfigAsync(JetLayout config)
     {
