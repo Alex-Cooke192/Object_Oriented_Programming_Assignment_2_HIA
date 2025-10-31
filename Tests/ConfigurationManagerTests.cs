@@ -25,10 +25,10 @@ public class ConfigurationManagerTests
 
         var configId = Guid.NewGuid();
         var json = JsonSerializer.Serialize(layout);
-        var configs = new Dictionary<Guid, string> { { configId, json } };
+        var configs = new Dictionary<Guid, JetLayout> { { configId, json } };
 
-        _mockRepo.Setup(r => r.LoadAll()).Returns(configs);
-        _mockRepo.Setup(r => r.SaveAll(It.IsAny<Dictionary<Guid, string>>())).Returns(true);
+        _mockRepo.Setup(r => r.LoadAllAsync()).Returns(configs);
+        _mockRepo.Setup(r => r.SaveAllAsync(It.IsAny<Dictionary<Guid, string>>())).Returns(true);
 
         _manager = new ConfigurationManager(_mockRepo.Object);
     }
