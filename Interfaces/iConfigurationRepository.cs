@@ -17,7 +17,7 @@ namespace JetInteriorApp.Interfaces
         /// <summary>
         /// Saves all configuration entries asynchronously.
         /// </summary>
-        Task SaveAllAsync(Dictionary<Guid, JetLayout> configs);
+        Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs);
 
         /// <summary>
         /// Saves a single configuration entry asynchronously.
