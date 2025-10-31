@@ -4,6 +4,6 @@ namespace JetInteriorApp.Models
     {
         public int X { get; set; }
         public int Y { get; set; }
-        public int? ComponentId { get; set; }
+        public Guid ComponentId { get; set; }
     }
 }
