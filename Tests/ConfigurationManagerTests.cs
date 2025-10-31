@@ -16,8 +16,7 @@ public class ConfigurationManagerTests
 
         var layout = new JetLayout
         {
-            LayoutName = "TestLayout",
-            UserId = Guid.NewGuid(),
+            ConfigID = Guid.NewGuid(),
             Components = new List<LayoutCell>
             {
                 new LayoutCell { X = 0, Y = 0, ComponentId = Guid.NewGuid() }
