@@ -22,6 +22,6 @@ namespace JetInteriorApp.Interfaces
         /// <summary>
         /// Saves a single configuration entry asynchronously.
         /// </summary>
-        Task SaveConfigAsync(JetLayout config);
+        Task<bool> SaveConfigAsync(Guid configId, string JetConfig);
     }
 }
