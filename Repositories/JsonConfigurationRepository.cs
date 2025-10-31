@@ -68,8 +68,6 @@ public class JsonConfigurationRepository : IConfigurationRepository
             Id = configId,
             UserId = _currentUserId,
             Name = layout.Name,
-            Version = layout.Version,
-            ValidationStatus = layout.ValidationStatus,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             ConfigJson = JsonSerializer.Serialize(layout, _options),
@@ -106,9 +104,128 @@ public class JsonConfigurationRepository : IConfigurationRepository
     await _db.SaveChangesAsync();
     return true;
 }
-    public async Task SaveConfigAsync(JetLayout config)
-    {
-        // Intentionally does nothing
-        await Task.CompletedTask;
-    }
+    public async Task<bool> SaveConfigAsync(Guid configId, string configJson)
+{
+    // 1. Find the existing config
+    var config = await _db.JetConfigs
+        .Include(c => c.InteriorComponents)
+        .FirstOrDefaultAsync(c => c.Id == configId);
+
+    if (config == null) return false;
+
+    // 2. Update config metadata
+    config.UpdatedAt = DateTime.UtcNow;
+    config.ConfigJson = configJson;
+
+    // 3. Deserialize layout map from configJson
+    var layoutMap = JsonSerializer.Deserialize<List<LayoutCell>>(configJson, _options);
+        if (layoutMap == null || !layoutMap.Any()) return false;
+
+        // 3. Query all matching components and include their subtype properties
+        var components = await _db.InteriorComponents
+            .Where(c => componentIds.Contains(c.ComponentId))
+            .Include(c => c.KitchenProperties)
+            .Include(c => c.SeatProperties)
+            .Include(c => c.LightingProperties)
+            .Include(c => c.TableProperties)
+            .Include(c => c.ScreenProperties)
+            .Include(c => c.StorageCabinetProperties)
+            .Include(c => c.EmergencyExitProperties)
+            .ToListAsync();
+        
+        foreach (var entry in layoutMap)
+        {
+            // 4. Find the matching component
+            var component = await _db.InteriorComponents
+                .FirstOrDefaultAsync(c => c.ComponentId == entry.ComponentId);
+
+            if (component == null) continue;
+
+            // 5. Update position
+            component.X = entry.X;
+            component.Y = entry.Y;
+            component.UpdatedAt = DateTime.UtcNow;
+
+            // 6. Route to correct property table based on component.Type
+            switch (component.Type)
+            {
+                case "Kitchen":
+                    var kitchen = await _db.KitchenProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (kitchen != null)
+                    {
+                        kitchen.ApplianceList = NewComponent.ApplianceList;
+                        kitchen.Refrigeration = NewComponent.Refrigeration;
+                        kitchen.FireSuppression = NewComponent.FireSuppression;
+                    }
+                    break;
+
+                case "Seat":
+                    var chair = await _db.SeatProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (chair != null)
+                    {
+                        chair.IsAccessible = NewComponent.IsAccessible;
+                        chair.Recline = NewComponent.Recline;
+                        chair.Lighting = NewComponent.lighting;
+                        chair.Massage = NewComponent.Massage;
+                        chair.Accessibility = NewComponent.Accessibility;
+                    }
+                    break;
+
+                case "Lighting":
+                    var lighting = await _db.LightingProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (lighting != null)
+                    {
+                        lighting.BrightnessLevel = NewComponent.BrightnessLevel;
+                        lighting.ColorTemperature = NewComponent.ColorTemperature;
+                        lighting.Dimmable = NewComponent.Dimmable;
+                    }
+                    break;
+
+                case "Table":
+                    var table = await _db.TableProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (table != null)
+                    {
+                        table.SurfaceMaterial = NewComponent.SurfaceMaterial;
+                        table.Foldable = NewComponent.Foldable;
+                        table.SeatCount = NewComponent.SeatCount;
+                    }
+                    break;
+
+                case "Screen":
+                    var screen = await _db.ScreenProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (screen != null)
+                    {
+                        screen.ContentFilters = NewComponent.ContentFilters;
+                        screen.Resolution = NewComponent.Resolution;
+                        screen.TouchEnabled = NewComponent.TouchEnabled;
+                    }
+                    break;
+
+                case "StorageCabinet":
+                    var cabinet = await _db.StorageCabinetProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (cabinet != null)
+                    {
+                        cabinet.CapacityLitres = NewComponent.CapacityLitres;
+                        cabinet.Lockable = NewComponent.Lockable;
+                        cabinet.ShelfCount = NewComponent.ShelfCount;
+                    }
+                    break;
+
+                case "EmergencyExit":
+                    var exit = await _db.EmergencyExitProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
+                    if (exit != null)
+                    {
+                        exit.ClearanceRadius = NewComponent.ClearanceRadius;
+                        exit.SignageType = NewComponent.SignageType;
+                        exit.AccessibilityFeatures = NewComponent.AccessibilityFeatures;
+                    }
+                    break;
+            }
+        }
+
+    await _db.SaveChangesAsync();
+    return true;
+}
+
+
 }

@@ -1,6 +1,6 @@
 namespace JetInteriorApp.Models
 {
-    public class SeatProperties
+    public class SeatProperties : ComponentProperties
     {
         public int Id { get; set; }
         public int ComponentId { get; set; }

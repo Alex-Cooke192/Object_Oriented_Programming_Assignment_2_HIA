@@ -1,6 +1,6 @@
 namespace JetInteriorObject.Models
 {
-    public class KitchenProperties
+    public class KitchenProperties : ComponentProperties
     {
         public int Id { get; set; }
         public int ComponentId { get; set; }

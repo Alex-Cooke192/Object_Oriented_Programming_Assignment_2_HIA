@@ -1,6 +1,6 @@
 namespace JetInteriorApp.Models
 {
-    public class StorageCabinetProperties
+    public class StorageCabinetProperties : ComponentProperties
     {
         public int Id { get; set; }
         public int ComponentId { get; set; }

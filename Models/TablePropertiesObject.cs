@@ -1,6 +1,6 @@
 namespace JetInteriorApp.Models 
 {
-    public class TableProperties
+    public class TableProperties : ComponentProperties
     {
         public Guid Id { get; set; }
         public Guid ComponentId { get; set; }

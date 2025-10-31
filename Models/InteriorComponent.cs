@@ -11,5 +11,5 @@ public class InteriorComponent
     public string Tier { get; set; }
     public string Accessibility { get; set; }
 
-    public object Properties { get; set; } // Holds subtype-specific data
+    public ComponentPropertiesBase ComponentProperties { get; set; } // Holds subtype-specific data
 }

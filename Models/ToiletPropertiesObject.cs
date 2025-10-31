@@ -1,6 +1,6 @@
 namespace JetInteriorApp.Models
 {
-    public class ToiletProperties
+    public class ToiletProperties : ComponentProperties
     {
         public int Id { get; set; }
         public int ComponentId { get; set; }

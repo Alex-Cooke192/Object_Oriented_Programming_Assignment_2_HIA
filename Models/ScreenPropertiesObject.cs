@@ -1,6 +1,6 @@
 namespace JetInteriorApp.Models
 {
-    public class ScreenProperties
+    public class ScreenProperties : ComponentProperties
     {
         public int Id { get; set; }
         public int ComponentId { get; set; }
