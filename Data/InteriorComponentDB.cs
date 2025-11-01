@@ -1,11 +1,13 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace JetInteriorApp.Data
 {
-    public class InteriorComponent
+    public class InteriorComponentDB
     {
-        public Guid ComponentId { get; set; }
-        public Guid ConfigId { get; set; }
+        [Key]
+        public Guid ComponentID { get; set; }
+        public Guid ConfigID { get; set; }
         public string Name { get; set; }
         public string Type { get; set; } // e.g. "Seat", "Screen", etc.
         public string Material { get; set; }
@@ -16,7 +18,8 @@ namespace JetInteriorApp.Data
         public float Height { get; set; }
         public float Depth { get; set; }
         public float Cost { get; set; }
+        public string PropertiesJson { get; set; } //JSON file containing all the info for that component
 
-        public ComponentSettings ComponentSettings { get; set; }
+        public ComponentSettings InteriorComponentSettings { get; set; }
     }
 }
