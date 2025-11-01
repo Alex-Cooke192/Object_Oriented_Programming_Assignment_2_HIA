@@ -1,4 +1,8 @@
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using JetInteriorApp.Models;
 
 public class DatabaseTester
 {
@@ -13,9 +17,11 @@ public class DatabaseTester
     {
         Console.WriteLine("🔍 Testing database tables...\n");
 
-        await TestTableAsync("JetConfigs", _db.JetConfigs.CountAsync());
+        await TestTableAsync("JetConfigurations", _db.JetConfigurations.CountAsync());
         await TestTableAsync("InteriorComponents", _db.InteriorComponents.CountAsync());
         await TestTableAsync("Users", _db.Users.CountAsync());
+
+        // Component property tables
         await TestTableAsync("SeatProperties", _db.SeatProperties.CountAsync());
         await TestTableAsync("ToiletProperties", _db.ToiletProperties.CountAsync());
         await TestTableAsync("StorageCabinetProperties", _db.StorageCabinetProperties.CountAsync());
@@ -25,7 +31,7 @@ public class DatabaseTester
         await TestTableAsync("KitchenProperties", _db.KitchenProperties.CountAsync());
         await TestTableAsync("EmergencyExitProperties", _db.EmergencyExitProperties.CountAsync());
 
-        await CheckJetConfigUserLinksAsync();
+        await CheckJetConfigurationUserLinksAsync();
 
         Console.WriteLine("\n✅ All table checks complete.");
     }
@@ -42,22 +48,22 @@ public class DatabaseTester
             Console.WriteLine($"❌ {tableName}: Error - {ex.Message}");
         }
     }
-    private async Task CheckJetConfigUserLinksAsync()
-    // Verifies every layout is owned by a valid user
+
+    private async Task CheckJetConfigurationUserLinksAsync()
     {
-        Console.WriteLine("\n🔗 Checking JetConfigs → Users foreign key integrity...");
+        Console.WriteLine("\n🔗 Checking JetConfigurations → Users foreign key integrity...");
 
         var validUserIds = await _db.Users.Select(u => u.Id).ToListAsync();
-        var configs = await _db.JetConfigs.ToListAsync();
+        var configs = await _db.JetConfigurations.ToListAsync();
 
         foreach (var config in configs)
         {
             if (!validUserIds.Contains(config.UserId))
             {
-                Console.WriteLine($"❌ JetConfig '{config.Name}' has invalid UserId: {config.UserId}");
+                Console.WriteLine($"❌ JetConfiguration '{config.Name}' has invalid UserId: {config.UserId}");
             }
         }
 
-        Console.WriteLine("✔ JetConfig user link check complete.");
+        Console.WriteLine("✔ JetConfiguration user link check complete.");
     }
 }
