@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using JetInteriorApp.Models; 
 
-namespace JetInteriorApp.models
+namespace JetInteriorApp.Models
 {
     public class User
     {
