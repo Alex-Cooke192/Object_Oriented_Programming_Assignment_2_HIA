@@ -19,6 +19,12 @@ class Program
         // 2. Create DB context
         using var db = new JetDbContext(options);
 
+        // Optional: Delete & Recreate Database
+        Console.WriteLine("Recreating database...");
+        await db.Database.EnsureDeletedAsync();
+        await db.Database.EnsureCreatedAsync();
+        Console.WriteLine("Database recreated successfully!");
+
         // 3. Create database + tables if not already present
         Console.WriteLine("Ensuring database and tables are created...");
         await db.Database.EnsureCreatedAsync();
