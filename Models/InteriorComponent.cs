@@ -1,15 +1,16 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema; 
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json; 
 
 namespace JetInteriorApp.Models
 {
     public class InteriorComponent
     {
         [Key]
-        public int ComponentID { get; set; }
+        public Guid ComponentID { get; set; }
 
         [ForeignKey("JetConfiguration")]
-        public int ConfigID { get; set; }
+        public Guid ConfigID { get; set; }
 
         public string Name { get; set; }
         public string Type { get; set; }
