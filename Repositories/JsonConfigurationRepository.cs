@@ -2,7 +2,6 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using JetInteriorApp.Models;
 using JetInteriorApp.Interfaces;
-using System.ComponentModel;
 
 public class JsonConfigurationRepository : IConfigurationRepository
 {
@@ -14,188 +13,233 @@ public class JsonConfigurationRepository : IConfigurationRepository
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
     };
 
-    public JsonConfigurationRepository(JetDbContext db, int currentUserId)
+    public JsonConfigurationRepository(JetDbContext db, Guid currentUserId)
     {
         _db = db;
         _currentUserId = currentUserId;
     }
 
-    // Load all configs for the current user and deserialize them
+    /// <summary>
+    /// Loads all configurations for the current user.
+    /// </summary>
     public async Task<IDictionary<Guid, JetLayout>> LoadAllAsync()
-{
-    var configs = await _db.JetConfigs
-        .Where(c => c.UserId == _currentUserId)
-        .AsNoTracking()
-        .ToListAsync();
-
-    var layouts = new Dictionary<Guid, JetLayout>();
-
-    foreach (var config in configs)
     {
-        if (!string.IsNullOrWhiteSpace(config.ConfigJson))
+        var configs = await _db.JetConfigurations
+            .Where(c => c.UserId == _currentUserId)
+            .AsNoTracking()
+            .Include(c => c.InteriorComponents)
+                .ThenInclude(ic => ic.ComponentSettings)
+            .ToListAsync();
+
+        var layouts = new Dictionary<Guid, JetLayout>();
+
+        foreach (var config in configs)
         {
-            var layout = JsonSerializer.Deserialize<JetLayout>(config.ConfigJson, _options);
-            if (layout != null) 
+            var layout = new JetLayout
             {
-                layouts.Add(layout.ConfigID, layout);
-            }
-        }
-    }
-
-    // Extract components from layouts belonging to the current user
-    var userComponents = layouts
-        .SelectMany(kvp => kvp.Value.Components.Select(c => new
-        {
-            LayoutId = kvp.Key,
-            ComponentId = c.ComponentId,
-            Coordinate = (c.X, c.Y)
-        }))
-        .ToList();
-
-    Console.WriteLine($"🔍 Found {userComponents.Count} components for user {_currentUserId}.");
-
-    return layouts;
-}
-    // Save all layouts for the current user, overwriting existing configs
-    public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
-    {
-        foreach (var layoutEntry in configs)
-        {
-            var layout = layoutEntry.Value;
-            var configId = layoutEntry.Key;
-
-            var config = new JetConfigDB
-            {
-                Id = configId,
-                UserId = _currentUserId,
-                Name = layout.Name,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                ConfigJson = JsonSerializer.Serialize(layout, _options),
-                InteriorComponents = layout.Components.Select(c => new InteriorComponentDB
+                ConfigID = config.ConfigId,
+                Name = config.ModelName,
+                SeatingCapacity = config.SeatingCapacity,
+                Components = config.InteriorComponents.Select(ic => new LayoutComponent
                 {
-                    Id = Guid.NewGuid(),
-                    JetConfigId = configId,
-                    Type = c.Type,
-                    X = c.X,
-                    Y = c.Y,
-                    Width = c.Width,
-                    Height = c.Height,
-
-                    // Subtype navigation will be added below
-                    KitchenProperties = c.Type == "Kitchen" ? new KitchenPropertiesDB
+                    ComponentId = ic.ComponentId,
+                    Name = ic.Name,
+                    Type = ic.Type,
+                    Tier = ic.Tier,
+                    Material = ic.Material,
+                    Color = ic.Color,
+                    Position = JsonSerializer.Deserialize<Position>(ic.Position ?? "{}", _options),
+                    Width = ic.Width,
+                    Height = ic.Height,
+                    Depth = ic.Depth,
+                    Cost = ic.Cost,
+                    Settings = ic.ComponentSettings == null ? null : new ComponentSettingsDTO
                     {
-                        ApplianceType = c.Kitchen.ApplianceType,
-                        HasIsland = c.Kitchen.HasIsland
-                    } : null,
-
-                    ChairProperties = c.Type == "Chair" ? new ChairPropertiesDB
-                    {
-                        Material = c.Chair.Material,
-                        HasArmrest = c.Chair.HasArmrest
-                    } : null
-
-                    // Add other subtypes here as needed
+                        WifiAccess = ic.ComponentSettings.WifiAccess,
+                        ScreenAccess = ic.ComponentSettings.ScreenAccess,
+                        AccessibilitySettings = ic.ComponentSettings.AccessibilitySettings
+                    }
                 }).ToList()
             };
 
-            _db.JetConfigs.Add(config);
+            layouts[config.ConfigId] = layout;
         }
 
-        await _db.SaveChangesAsync();
-        return true;
+        return layouts;
     }
 
-    public async Task<bool> SaveConfigAsync(Guid configId, string configJson)
+    /// <summary>
+    /// Saves all JetLayouts for the current user.
+    /// </summary>
+    public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
     {
-        // Your implementation here
-    }
-    public async Task<bool> SaveEditedComponentsAsync(Guid configId, string configJson)
-    {
-        // 1. Load JetConfig and hydrate components
-        var config = await _db.JetConfigs
-            .Include(c => c.InteriorComponents)
-            .FirstOrDefaultAsync(c => c.Id == configId);
-
-        if (config == null) return false;
-
-        // 2. Deserialize layout map to get component IDs
-        var layoutMap = JsonSerializer.Deserialize<List<LayoutCell>>(configJson, _options);
-        if (layoutMap == null || !layoutMap.Any()) return false;
-
-        var componentIds = layoutMap.Select(c => c.ComponentId).Distinct().ToList();
-
-        // 3. Query matching components from DB
-        var dbComponents = await _db.InteriorComponents
-            .Where(c => componentIds.Contains(c.ComponentId))
-            .ToListAsync();
-
-        // 4. Update each DB component using edited version from JetConfig
-        foreach (var dbComponent in dbComponents)
+        foreach (var (configId, layout) in configs)
         {
-            // Get co-ordinates of component
-            var layoutCell = layoutMap.FirstOrDefault(c => c.ComponentId == dbComponent.ComponentId);
-            if (layoutCell == null) continue;
+            var existingConfig = await _db.JetConfigurations
+                .Include(c => c.InteriorComponents)
+                    .ThenInclude(ic => ic.ComponentSettings)
+                .FirstOrDefaultAsync(c => c.ConfigId == configId && c.UserId == _currentUserId);
 
-            // Pull edited component from current JetConfig
-            var editedComponent = config.InteriorComponents
-                .FirstOrDefault(c => c.ComponentId == dbComponent.ComponentId);
-
-            if (editedComponent == null) continue;
-
-            dbComponent.X = layoutCell.X;
-            dbComponent.Y = layoutCell.Y;
-
-            switch (dbComponent)
+            if (existingConfig != null)
             {
-                case SeatComponentDB dbSeat when editedComponent is SeatComponentDB editedSeat:
-                    dbSeat.Recline = editedSeat.Recline;
-                    dbSeat.Massage = editedSeat.Massage;
-                    dbSeat.Accessibility = editedSeat.Accessibility;
-                    dbSeat.Lighting = editedSeat.Lighting;
-                    break;
+                existingConfig.ModelName = layout.Name;
+                existingConfig.SeatingCapacity = layout.SeatingCapacity;
+                existingConfig.UpdatedAt = DateTime.UtcNow;
 
-                case KitchenComponentDB dbKitchen when editedComponent is KitchenComponentDB editedKitchen:
-                    dbKitchen.ApplianceList = editedKitchen.ApplianceList;
-                    dbKitchen.Refrigeration = editedKitchen.Refrigeration;
-                    dbKitchen.FireSuppression = editedKitchen.FireSuppression;
-                    break;
+                // Clear old components
+                _db.InteriorComponents.RemoveRange(existingConfig.InteriorComponents);
 
-                case LightingComponentDB dbLight when editedComponent is LightingComponentDB editedLight:
-                    dbLight.BrightnessLevel = editedLight.BrightnessLevel;
-                    dbLight.ColorTemperature = editedLight.ColorTemperature;
-                    dbLight.Dimmable = editedLight.Dimmable;
-                    break;
+                // Add new components
+                existingConfig.InteriorComponents = layout.Components.Select(c => new InteriorComponent
+                {
+                    ComponentId = c.ComponentId,
+                    ConfigId = configId,
+                    Name = c.Name,
+                    Type = c.Type,
+                    Tier = c.Tier,
+                    Material = c.Material,
+                    Color = c.Color,
+                    Position = JsonSerializer.Serialize(c.Position, _options),
+                    Width = c.Width,
+                    Height = c.Height,
+                    Depth = c.Depth,
+                    Cost = c.Cost,
+                    CreatedAt = DateTime.UtcNow,
+                    ComponentSettings = c.Settings == null ? null : new ComponentSettings
+                    {
+                        ComponentId = c.ComponentId,
+                        WifiAccess = c.Settings.WifiAccess,
+                        ScreenAccess = c.Settings.ScreenAccess,
+                        AccessibilitySettings = c.Settings.AccessibilitySettings
+                    }
+                }).ToList();
+            }
+            else
+            {
+                var newConfig = new JetConfiguration
+                {
+                    ConfigId = configId,
+                    UserId = _currentUserId,
+                    ModelName = layout.Name,
+                    SeatingCapacity = layout.SeatingCapacity,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    InteriorComponents = layout.Components.Select(c => new InteriorComponent
+                    {
+                        ComponentId = c.ComponentId,
+                        ConfigId = configId,
+                        Name = c.Name,
+                        Type = c.Type,
+                        Tier = c.Tier,
+                        Material = c.Material,
+                        Color = c.Color,
+                        Position = JsonSerializer.Serialize(c.Position, _options),
+                        Width = c.Width,
+                        Height = c.Height,
+                        Depth = c.Depth,
+                        Cost = c.Cost,
+                        CreatedAt = DateTime.UtcNow,
+                        ComponentSettings = c.Settings == null ? null : new ComponentSettings
+                        {
+                            ComponentId = c.ComponentId,
+                            WifiAccess = c.Settings.WifiAccess,
+                            ScreenAccess = c.Settings.ScreenAccess,
+                            AccessibilitySettings = c.Settings.AccessibilitySettings
+                        }
+                    }).ToList()
+                };
 
-                case TableComponentDB dbTable when editedComponent is TableComponentDB editedTable:
-                    dbTable.SurfaceMaterial = editedTable.SurfaceMaterial;
-                    dbTable.Foldable = editedTable.Foldable;
-                    dbTable.SeatCount = editedTable.SeatCount;
-                    break;
-
-                case ScreenComponentDB dbScreen when editedComponent is ScreenComponentDB editedScreen:
-                    dbScreen.ContentFilters = editedScreen.ContentFilters;
-                    dbScreen.Resolution = editedScreen.Resolution;
-                    dbScreen.TouchEnabled = editedScreen.TouchEnabled;
-                    break;
-
-                case StorageCabinetComponentDB dbCabinet when editedComponent is StorageCabinetComponentDB editedCabinet:
-                    dbCabinet.CapacityLitres = editedCabinet.CapacityLitres;
-                    dbCabinet.Lockable = editedCabinet.Lockable;
-                    dbCabinet.ShelfCount = editedCabinet.ShelfCount;
-                    break;
-
-                case EmergencyExitComponentDB dbExit when editedComponent is EmergencyExitComponentDB editedExit:
-                    dbExit.ClearanceRadius = editedExit.ClearanceRadius;
-                    dbExit.SignageType = editedExit.SignageType;
-                    dbExit.AccessibilityFeatures = editedExit.AccessibilityFeatures;
-                    break;
+                await _db.JetConfigurations.AddAsync(newConfig);
             }
         }
 
-        // 5. Save changes
         await _db.SaveChangesAsync();
         return true;
     }
 
+    /// <summary>
+    /// Saves a single JetLayout config from JSON string.
+    /// </summary>
+    public async Task<bool> SaveConfigAsync(Guid configId, string jetConfigJson)
+    {
+        var layout = JsonSerializer.Deserialize<JetLayout>(jetConfigJson, _options);
+        if (layout == null) return false;
+
+        var existing = await _db.JetConfigurations
+            .Include(c => c.InteriorComponents)
+                .ThenInclude(ic => ic.ComponentSettings)
+            .FirstOrDefaultAsync(c => c.ConfigId == configId && c.UserId == _currentUserId);
+
+        if (existing != null)
+        {
+            existing.ModelName = layout.Name;
+            existing.SeatingCapacity = layout.SeatingCapacity;
+            existing.UpdatedAt = DateTime.UtcNow;
+            _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
+
+            existing.InteriorComponents = layout.Components.Select(c => new InteriorComponent
+            {
+                ComponentId = c.ComponentId,
+                ConfigId = configId,
+                Name = c.Name,
+                Type = c.Type,
+                Tier = c.Tier,
+                Material = c.Material,
+                Color = c.Color,
+                Position = JsonSerializer.Serialize(c.Position, _options),
+                Width = c.Width,
+                Height = c.Height,
+                Depth = c.Depth,
+                Cost = c.Cost,
+                CreatedAt = DateTime.UtcNow,
+                ComponentSettings = c.Settings == null ? null : new ComponentSettings
+                {
+                    ComponentId = c.ComponentId,
+                    WifiAccess = c.Settings.WifiAccess,
+                    ScreenAccess = c.Settings.ScreenAccess,
+                    AccessibilitySettings = c.Settings.AccessibilitySettings
+                }
+            }).ToList();
+        }
+        else
+        {
+            var newConfig = new JetConfiguration
+            {
+                ConfigId = configId,
+                UserId = _currentUserId,
+                ModelName = layout.Name,
+                SeatingCapacity = layout.SeatingCapacity,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = layout.Components.Select(c => new InteriorComponent
+                {
+                    ComponentId = c.ComponentId,
+                    ConfigId = configId,
+                    Name = c.Name,
+                    Type = c.Type,
+                    Tier = c.Tier,
+                    Material = c.Material,
+                    Color = c.Color,
+                    Position = JsonSerializer.Serialize(c.Position, _options),
+                    Width = c.Width,
+                    Height = c.Height,
+                    Depth = c.Depth,
+                    Cost = c.Cost,
+                    CreatedAt = DateTime.UtcNow,
+                    ComponentSettings = c.Settings == null ? null : new ComponentSettings
+                    {
+                        ComponentId = c.ComponentId,
+                        WifiAccess = c.Settings.WifiAccess,
+                        ScreenAccess = c.Settings.ScreenAccess,
+                        AccessibilitySettings = c.Settings.AccessibilitySettings
+                    }
+                }).ToList()
+            };
+
+            await _db.JetConfigurations.AddAsync(newConfig);
+        }
+
+        await _db.SaveChangesAsync();
+        return true;
+    }
 }
