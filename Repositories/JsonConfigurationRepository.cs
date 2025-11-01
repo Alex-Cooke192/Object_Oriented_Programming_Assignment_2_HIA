@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.ComponentModel.Design;
 
 public class JsonConfigurationRepository : IConfigurationRepository
 {
@@ -26,83 +27,124 @@ public class JsonConfigurationRepository : IConfigurationRepository
 
     // Matches interface exactly
     public async Task<List<JetConfiguration>> LoadAllAsync()
+{
+    var dbConfigs = await _db.JetConfigurations
+        .Where(c => c.UserID == _currentUserId)
+        .Include(c => c.InteriorComponents)
+        .ToListAsync();
+
+    var domainConfigs = dbConfigs.Select(db => new JetConfiguration
     {
-        return await _db.JetConfigurations
-            .Where(c => c.UserID == _currentUserId)
-            .Include(c => c.Components)
-            .ToListAsync();
-    }
+        ConfigID = db.ConfigID,
+        UserID = db.UserID,
+        Name = db.Name,
+        SeatingCapacity = db.SeatingCapacity,
+        CreatedAt = db.CreatedAt,
+        UpdatedAt = db.UpdatedAt,
+        InteriorComponents = db.InteriorComponents?.Select(ic => new InteriorComponent
+        {
+            ComponentID = ic.ComponentID,
+            ConfigID = ic.ConfigID,
+            Name = ic.Name,
+            Type = ic.Type,
+            Tier = ic.Tier,
+            Material = ic.Material,
+            Width = ic.Width,
+            Height = ic.Height,
+            Depth = ic.Depth,
+            Cost = ic.Cost,
+            PropertiesJson = ic.PropertiesJson
+        }).ToList()
+    }).ToList();
+
+    return domainConfigs;
+}
 
     // Matches interface exactly
     public async Task<bool> SaveConfigAsync(JetConfiguration config)
+{
+    if (config == null) return false;
+
+    // Convert to DB entity
+    var configDb = new JetConfigurationDB
     {
-        if (config == null) return false;
-
-        var existing = await _db.JetConfigurations
-            .Include(c => c.Components)
-            .FirstOrDefaultAsync(c => c.ConfigID == config.ConfigID && c.UserID == _currentUserId);
-
-        if (existing != null)
+        ConfigID = config.ConfigID,
+        UserID = _currentUserId,
+        Name = config.Name,
+        SeatingCapacity = config.SeatingCapacity,
+        CreatedAt = config.CreatedAt,
+        UpdatedAt = DateTime.UtcNow,
+        InteriorComponents = config.InteriorComponents?.Select(c => new InteriorComponentDB
         {
-            _db.InteriorComponents.RemoveRange(existing.Components);
+            ComponentID = c.ComponentID, 
+            ConfigID = config.ConfigID,
+            Name = c.Name,
+            Type = c.Type,
+            Tier = c.Tier,
+            Material = c.Material,
+            Width = c.Width,
+            Height = c.Height,
+            Depth = c.Depth,
+            Cost = c.Cost,
+            PropertiesJson = c.PropertiesJson
+        }).ToList()
+    };
 
-            existing.Components = config.Components?.Select(c => new InteriorComponent
-            {
-                ConfigID = existing.ConfigID,
-                Name = c.Name,
-                Type = c.Type,
-                Tier = c.Tier,
-                Material = c.Material,
-                Width = c.Width,
-                Height = c.Height,
-                Depth = c.Depth,
-                Cost = c.Cost,
-                PropertiesJson = c.PropertiesJson
-            }).ToList();
+    var existing = await _db.JetConfigurations
+        .Include(c => c.InteriorComponents)
+        .FirstOrDefaultAsync(c => c.ConfigID == configDb.ConfigID && c.UserID == _currentUserId);
 
-            existing.ModelName = config.ModelName;
-            existing.SeatingCapacity = config.SeatingCapacity;
-            existing.UpdatedAt = DateTime.UtcNow;
-        }
-        else
-        {
-            var newConfig = new JetConfiguration
-            {
-                ConfigID = config.ConfigID,
-                UserID = _currentUserId,
-                ModelName = config.ModelName,
-                SeatingCapacity = config.SeatingCapacity,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Components = config.Components?.Select(c => new InteriorComponent
-                {
-                    ConfigID = config.ConfigID,
-                    Name = c.Name,
-                    Type = c.Type,
-                    Tier = c.Tier,
-                    Material = c.Material,
-                    Width = c.Width,
-                    Height = c.Height,
-                    Depth = c.Depth,
-                    Cost = c.Cost,
-                    PropertiesJson = c.PropertiesJson
-                }).ToList()
-            };
+    if (existing != null)
+    {
+        _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
 
-            await _db.JetConfigurations.AddAsync(newConfig);
-        }
-
-        await _db.SaveChangesAsync();
-        return true;
+        existing.InteriorComponents = configDb.InteriorComponents;
+        existing.Name = configDb.Name;
+        existing.SeatingCapacity = configDb.SeatingCapacity;
+        existing.UpdatedAt = DateTime.UtcNow;
     }
+    else
+    {
+        await _db.JetConfigurations.AddAsync(configDb);
+    }
+
+    await _db.SaveChangesAsync();
+    return true;
+}
+
 
     // Matches interface exactly
     public async Task<bool> SaveAllAsync(List<JetConfiguration> configs)
     {
+        // Get all configs currently in the DB for this user
+        var existingConfigs = await _db.JetConfigurations
+            .Where(c => c.UserID == _currentUserId)
+            .Include(c => c.InteriorComponents)
+            .ToListAsync();
+
+        // Find configs that no longer exist in memory
+        var toRemove = existingConfigs
+            .Where(dbConfig => !configs.Any(c => c.ConfigID == dbConfig.ConfigID))
+            .ToList();
+
+        if (toRemove.Any())
+        {
+            // Remove related interior components first (if cascade delete not configured)
+            foreach (var config in toRemove)
+            {
+                _db.InteriorComponents.RemoveRange(config.InteriorComponents);
+            }
+
+            _db.JetConfigurations.RemoveRange(toRemove);
+        }
+
+        // Save or update the rest
         foreach (var config in configs)
         {
             await SaveConfigAsync(config);
         }
+
+        await _db.SaveChangesAsync();
         return true;
     }
 }
