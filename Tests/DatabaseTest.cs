@@ -1,9 +1,10 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using JetInteriorApp.Models; 
 using Microsoft.EntityFrameworkCore;
-using JetInteriorApp.Models;
-using JetInteriorApp.Data; 
+using JetInteriorApp.Data;
+using System.ComponentModel;
 
 public class DatabaseTester
 {
@@ -18,23 +19,19 @@ public class DatabaseTester
     {
         Console.WriteLine("🔍 Testing database tables...\n");
 
+        // Test the four tables
+        await TestTableAsync("Users", _db.Users.CountAsync());
         await TestTableAsync("JetConfigurations", _db.JetConfigurations.CountAsync());
         await TestTableAsync("InteriorComponents", _db.InteriorComponents.CountAsync());
-        await TestTableAsync("Users", _db.Users.CountAsync());
+        await TestTableAsync("ComponentSettings", _db.ComponentSettings.CountAsync());
 
-        // Component property tables
-        await TestTableAsync("SeatProperties", _db.SeatProperties.CountAsync());
-        await TestTableAsync("ToiletProperties", _db.ToiletProperties.CountAsync());
-        await TestTableAsync("StorageCabinetProperties", _db.StorageCabinetProperties.CountAsync());
-        await TestTableAsync("TableProperties", _db.TableProperties.CountAsync());
-        await TestTableAsync("LightingProperties", _db.LightingProperties.CountAsync());
-        await TestTableAsync("ScreenProperties", _db.ScreenProperties.CountAsync());
-        await TestTableAsync("KitchenProperties", _db.KitchenProperties.CountAsync());
-        await TestTableAsync("EmergencyExitProperties", _db.EmergencyExitProperties.CountAsync());
-
+        // Verify foreign key relationships
         await CheckJetConfigurationUserLinksAsync();
 
-        Console.WriteLine("\n✅ All table checks complete.");
+        //Create a test user & add to database
+        await CreateUserTestAsync(); 
+
+        Console.WriteLine("\n All table checks complete.");
     }
 
     private async Task TestTableAsync(string tableName, Task<int> countTask)
@@ -42,29 +39,69 @@ public class DatabaseTester
         try
         {
             int count = await countTask;
-            Console.WriteLine($"✔ {tableName}: {count} row(s)");
+            Console.WriteLine($"PASS: {tableName}: {count} row(s)");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ {tableName}: Error - {ex.Message}");
+            Console.WriteLine($"ERROR: {tableName}: Error - {ex.Message}");
         }
     }
 
     private async Task CheckJetConfigurationUserLinksAsync()
     {
-        Console.WriteLine("\n🔗 Checking JetConfigurations → Users foreign key integrity...");
+        Console.WriteLine("\n Checking JetConfigurations → Users foreign key integrity...");
 
-        var validUserIds = await _db.Users.Select(u => u.Id).ToListAsync();
+        var validUserIds = await _db.Users.Select(u => u.UserID).ToListAsync();
         var configs = await _db.JetConfigurations.ToListAsync();
 
         foreach (var config in configs)
         {
-            if (!validUserIds.Contains(config.UserId))
+            if (!validUserIds.Contains(config.UserID))
             {
-                Console.WriteLine($"❌ JetConfiguration '{config.Name}' has invalid UserId: {config.UserId}");
+                Console.WriteLine($" JetConfiguration '{config.Name}' has invalid UserID: {config.UserID}");
             }
         }
 
-        Console.WriteLine("✔ JetConfiguration user link check complete.");
+        Console.WriteLine(" JetConfiguration user link check complete.");
+    }
+
+    public async Task CreateUserTestAsync()
+    {
+        try
+        {
+            // Create a new user
+            var newUser = new User
+            {
+                Username = "testuser_" + Guid.NewGuid(), // unique name
+                Email = "testuser@example.com",
+                CreatedAt = DateTime.UtcNow
+                // add other required fields here
+            };
+
+            //Set Password securely
+            newUser.SetPassword("SecurePassword123!"); 
+
+            //Convert to UserDB format so can be added to database
+            var newUserDB = new UserDB
+            {
+                UserID = Guid.NewGuid(),              // generate a new ID for the database
+                Username = newUser.Username,
+                Email = newUser.Email,
+                PasswordHash = newUser.PasswordHash,  // hashed password
+                CreatedAt = newUser.CreatedAt
+            };
+
+            // Add user to the DbContext
+            _db.Users.Add(newUserDB);
+
+            // Commit to the database
+            await _db.SaveChangesAsync();
+
+            Console.WriteLine($"✅ User created successfully with ID: {newUser.UserID}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error creating user: {ex.Message}");
+        }
     }
 }
