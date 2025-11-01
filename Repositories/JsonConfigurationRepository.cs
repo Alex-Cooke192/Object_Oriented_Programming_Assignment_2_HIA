@@ -1,8 +1,11 @@
-using JetInteriorApp.Models; 
-using JetInteriorApp.Data; 
-using JetInteriorApp.Interfaces; 
-using System; 
-using System.Text.Json; 
+using JetInteriorApp.Models;
+using JetInteriorApp.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 public class JsonConfigurationRepository : IConfigurationRepository
 {
@@ -20,113 +23,68 @@ public class JsonConfigurationRepository : IConfigurationRepository
         _currentUserId = currentUserId;
     }
 
+    // Matches interface exactly
     public async Task<List<JetConfiguration>> LoadAllAsync()
     {
-        var configs = await _db.JetConfigurations
-            .Where(c => c.UserId == _currentUserId)
-            .AsNoTracking()
-            .Include(c => c.InteriorComponents)
-                .ThenInclude(ic => ic.ComponentSettings)
+        return await _db.JetConfigurations
+            .Where(c => c.UserID == _currentUserId)
+            .Include(c => c.Components)
             .ToListAsync();
-
-        var layouts = new Dictionary<Guid, JetLayout>();
-
-        foreach (var config in configs)
-        {
-            var layout = new Jet
-            {
-                ConfigID = config.ConfigId,
-                Name = config.ModelName,
-                SeatingCapacity = config.SeatingCapacity,
-                Components = config.InteriorComponents.Select(ic => new LayoutComponent
-                {
-                    ComponentId = ic.ComponentId,
-                    Name = ic.Name,
-                    Type = ic.Type,
-                    Tier = ic.Tier,
-                    Material = ic.Material,
-                    Color = ic.Color,
-                    Position = JsonSerializer.Deserialize<Position>(ic.Position ?? "{}", _options),
-                    Width = ic.Width,
-                    Height = ic.Height,
-                    Depth = ic.Depth,
-                    Cost = ic.Cost,
-                    // Deserialize type-specific settings into a dynamic object
-                    Settings = string.IsNullOrWhiteSpace(ic.ComponentSettings?.SettingsJson)
-                        ? null
-                        : JsonSerializer.Deserialize<JsonElement>(ic.ComponentSettings.SettingsJson, _options)
-                }).ToList()
-            };
-
-            layouts[config.ConfigId] = layout;
-        }
-
-        return layouts;
     }
 
+    // Matches interface exactly
     public async Task<bool> SaveConfigAsync(JetConfiguration config)
     {
-        var layout = JsonSerializer.Deserialize<JetLayout>(jetConfigJson, _options);
-        if (layout == null) return false;
+        if (config == null) return false;
 
         var existing = await _db.JetConfigurations
-            .Include(c => c.InteriorComponents)
-                .ThenInclude(ic => ic.ComponentSettings)
-            .FirstOrDefaultAsync(c => c.ConfigId == configId && c.UserId == _currentUserId);
+            .Include(c => c.Components)
+            .FirstOrDefaultAsync(c => c.ConfigID == config.ConfigID && c.UserID == _currentUserId);
 
         if (existing != null)
         {
-            _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
-            existing.InteriorComponents = layout.Components.Select(c => new InteriorComponent
+            _db.InteriorComponents.RemoveRange(existing.Components);
+
+            existing.Components = config.Components?.Select(c => new InteriorComponent
             {
-                ComponentId = c.ComponentId,
-                ConfigId = configId,
+                ConfigID = existing.ConfigID,
                 Name = c.Name,
                 Type = c.Type,
                 Tier = c.Tier,
                 Material = c.Material,
-                Color = c.Color,
-                Position = JsonSerializer.Serialize(c.Position, _options),
                 Width = c.Width,
                 Height = c.Height,
                 Depth = c.Depth,
                 Cost = c.Cost,
-                ComponentSettings = new ComponentSettings
-                {
-                    ComponentId = c.ComponentId,
-                    SettingsJson = c.Settings?.ToString() ?? "{}"
-                }
+                PropertiesJson = c.PropertiesJson
             }).ToList();
+
+            existing.ModelName = config.ModelName;
+            existing.SeatingCapacity = config.SeatingCapacity;
+            existing.UpdatedAt = DateTime.UtcNow;
         }
         else
         {
             var newConfig = new JetConfiguration
             {
-                ConfigId = configId,
-                UserId = _currentUserId,
-                ModelName = layout.Name,
-                SeatingCapacity = layout.SeatingCapacity,
+                ConfigID = config.ConfigID,
+                UserID = _currentUserId,
+                ModelName = config.ModelName,
+                SeatingCapacity = config.SeatingCapacity,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                InteriorComponents = layout.Components.Select(c => new InteriorComponent
+                Components = config.Components?.Select(c => new InteriorComponent
                 {
-                    ComponentId = c.ComponentId,
-                    ConfigId = configId,
+                    ConfigID = config.ConfigID,
                     Name = c.Name,
                     Type = c.Type,
                     Tier = c.Tier,
                     Material = c.Material,
-                    Color = c.Color,
-                    Position = JsonSerializer.Serialize(c.Position, _options),
                     Width = c.Width,
                     Height = c.Height,
                     Depth = c.Depth,
                     Cost = c.Cost,
-                    ComponentSettings = new ComponentSettings
-                    {
-                        ComponentId = c.ComponentId,
-                        SettingsJson = c.Settings?.ToString() ?? "{}"
-                    }
+                    PropertiesJson = c.PropertiesJson
                 }).ToList()
             };
 
@@ -137,10 +95,13 @@ public class JsonConfigurationRepository : IConfigurationRepository
         return true;
     }
 
+    // Matches interface exactly
     public async Task<bool> SaveAllAsync(List<JetConfiguration> configs)
     {
-        foreach (var (id, json) in configs)
-            await SaveConfigAsync(id, JsonSerializer.Serialize(json, _options));
+        foreach (var config in configs)
+        {
+            await SaveConfigAsync(config);
+        }
         return true;
     }
 }
