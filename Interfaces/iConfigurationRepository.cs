@@ -16,6 +16,7 @@ namespace JetInteriorApp.Interfaces
 
         /// <summary>
         /// Saves all configuration entries asynchronously.
+        /// Removes any deleted configurations from Db 
         /// </summary>
         Task<bool> SaveAllAsync(List<JetConfiguration> configs);
 
