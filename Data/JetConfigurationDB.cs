@@ -1,17 +1,25 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using JetInteriorApp.Models; 
+
 
 namespace JetInteriorApp.Data
 {
-    public class JetConfiguration
+    public class JetConfigurationDB
     {
-        public Guid ConfigId { get; set; }
-        public Guid UserId { get; set; }
-        public string ModelName { get; set; }
+        [Key]
+        public Guid ConfigID { get; set; }
+
+        [ForeignKey(nameof(User))]
+        public Guid UserID { get; set; }
+        public string Name { get; set; }
         public int SeatingCapacity { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
-        public ICollection<InteriorComponent> InteriorComponents { get; set; } = new List<InteriorComponent>();
+        public UserDB User { get; set; }
+        public ICollection<InteriorComponentDB> InteriorComponents { get; set; } = new List<InteriorComponentDB>();
     }
 }
