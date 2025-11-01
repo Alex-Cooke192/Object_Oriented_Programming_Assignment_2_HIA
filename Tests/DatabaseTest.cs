@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using JetInteriorApp.Models;
+using JetInteriorApp.Data; 
 
 public class DatabaseTester
 {
