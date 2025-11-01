@@ -10,8 +10,9 @@ namespace JetInteriorApp.Data
         }
 
         // Tables
-        public DbSet<JetConfiguration> JetConfigurations { get; set; }
-        public DbSet<InteriorComponent> InteriorComponents { get; set; }
+        public DbSet<UserDB> Users { get; set; }
+        public DbSet<JetConfigurationDB> JetConfigurations { get; set; }
+        public DbSet<InteriorComponentDB> InteriorComponents { get; set; }
         public DbSet<ComponentSettings> ComponentSettings { get; set; }
 
         // Model configuration
@@ -19,16 +20,23 @@ namespace JetInteriorApp.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Users -> JetConfiguration (one-to-many)
+            modelBuilder.Entity<UserDB>()
+                .HasMany(u => u.Configurations)
+                .WithOne(c => c.User)
+                .HasForeignKey(c => c.UserID)
+                .OnDelete(DeleteBehavior.Cascade); 
+
             // JetConfiguration → InteriorComponents (one-to-many)
-            modelBuilder.Entity<JetConfiguration>()
+            modelBuilder.Entity<JetConfigurationDB>()
                 .HasMany(c => c.InteriorComponents)
                 .WithOne()
-                .HasForeignKey(ic => ic.ConfigId)
+                .HasForeignKey(ic => ic.ConfigID)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // InteriorComponent → ComponentSettings (one-to-one)
-            modelBuilder.Entity<InteriorComponent>()
-                .HasOne(ic => ic.ComponentSettings)
+            modelBuilder.Entity<InteriorComponentDB>()
+                .HasOne(ic => ic.InteriorComponentSettings)
                 .WithOne()
                 .HasForeignKey<ComponentSettings>(cs => cs.ComponentId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -41,13 +49,13 @@ namespace JetInteriorApp.Data
             // Adjust column types for your database provider:
             // - SQL Server → nvarchar(max)
             // - PostgreSQL → jsonb
-            modelBuilder.Entity<InteriorComponent>()
+            modelBuilder.Entity<InteriorComponentDB>()
                 .Property(ic => ic.Position)
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("TEXT");
 
             modelBuilder.Entity<ComponentSettings>()
                 .Property(cs => cs.SettingsJson)
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("TEXT");
 
         }
     }
