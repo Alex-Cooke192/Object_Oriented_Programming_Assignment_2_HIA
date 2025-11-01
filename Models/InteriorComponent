@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace JetInteriorApp.Models
 {
     public class InteriorComponent

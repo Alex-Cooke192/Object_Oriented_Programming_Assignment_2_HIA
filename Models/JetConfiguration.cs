@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace JetInteriorApp.Models
 {
     public class JetConfiguration
