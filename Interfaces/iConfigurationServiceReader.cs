@@ -12,6 +12,6 @@ namespace JetInteriorApp.Interfaces
         /// <summary>
         /// Fetches a single configuration by ID
         /// </summary>
-        JetLayout GetConfiguration(Guid id);
+        JetConfiguration GetConfiguration(Guid id);
     }
 }
