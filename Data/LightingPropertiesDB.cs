@@ -1,4 +1,4 @@
-public class LightingPropertiesDB
+public class LightingComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

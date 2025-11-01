@@ -1,4 +1,4 @@
-public class ScreenPropertiesDB
+public class ScreenComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

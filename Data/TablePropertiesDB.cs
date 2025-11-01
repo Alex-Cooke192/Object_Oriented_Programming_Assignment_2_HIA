@@ -1,4 +1,4 @@
-public class TablePropertiesDB
+public class TableComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

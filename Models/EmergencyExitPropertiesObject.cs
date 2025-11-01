@@ -1,6 +1,6 @@
 namespace JetInteriorApp.Models
 {
-    public class EmergencyExitProperties : ComponentProperties
+    public class EmergencyExitProperties : ComponentPropertiesBase
     {
         public int Id { get; set; }
         public int ComponentId { get; set; }

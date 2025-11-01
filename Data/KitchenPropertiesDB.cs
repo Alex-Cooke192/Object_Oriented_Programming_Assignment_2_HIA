@@ -1,4 +1,4 @@
-public class KitchenPropertiesDB
+public class KitchenComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

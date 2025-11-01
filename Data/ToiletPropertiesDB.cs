@@ -1,4 +1,4 @@
-public class ToiletPropertiesDB
+public class ToiletComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

@@ -1,4 +1,4 @@
-public class SeatPropertiesDB
+public class SeatComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

@@ -1,4 +1,4 @@
-public class EmergencyExitPropertiesDB
+public class EmergencyExitComponentDB : InteriorComponentDB
 {
     public Guid Id { get; set; }
     public Guid ComponentId { get; set; }

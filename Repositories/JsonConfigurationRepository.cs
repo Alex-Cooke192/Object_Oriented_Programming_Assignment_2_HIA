@@ -1,7 +1,8 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces; 
+using JetInteriorApp.Interfaces;
+using System.ComponentModel;
 
 public class JsonConfigurationRepository : IConfigurationRepository
 {
@@ -57,175 +58,144 @@ public class JsonConfigurationRepository : IConfigurationRepository
 }
     // Save all layouts for the current user, overwriting existing configs
     public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
-{
-    foreach (var layoutEntry in configs)
     {
-        var layout = layoutEntry.Value;
-        var configId = layoutEntry.Key;
-
-        var config = new JetConfigDB
+        foreach (var layoutEntry in configs)
         {
-            Id = configId,
-            UserId = _currentUserId,
-            Name = layout.Name,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            ConfigJson = JsonSerializer.Serialize(layout, _options),
-            InteriorComponents = layout.Components.Select(c => new InteriorComponentDB
+            var layout = layoutEntry.Value;
+            var configId = layoutEntry.Key;
+
+            var config = new JetConfigDB
             {
-                Id = Guid.NewGuid(),
-                JetConfigId = configId,
-                Type = c.Type,
-                X = c.X,
-                Y = c.Y,
-                Width = c.Width,
-                Height = c.Height,
-
-                // Subtype navigation will be added below
-                KitchenProperties = c.Type == "Kitchen" ? new KitchenPropertiesDB
+                Id = configId,
+                UserId = _currentUserId,
+                Name = layout.Name,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                ConfigJson = JsonSerializer.Serialize(layout, _options),
+                InteriorComponents = layout.Components.Select(c => new InteriorComponentDB
                 {
-                    ApplianceType = c.Kitchen.ApplianceType,
-                    HasIsland = c.Kitchen.HasIsland
-                } : null,
+                    Id = Guid.NewGuid(),
+                    JetConfigId = configId,
+                    Type = c.Type,
+                    X = c.X,
+                    Y = c.Y,
+                    Width = c.Width,
+                    Height = c.Height,
 
-                ChairProperties = c.Type == "Chair" ? new ChairPropertiesDB
-                {
-                    Material = c.Chair.Material,
-                    HasArmrest = c.Chair.HasArmrest
-                } : null
+                    // Subtype navigation will be added below
+                    KitchenProperties = c.Type == "Kitchen" ? new KitchenPropertiesDB
+                    {
+                        ApplianceType = c.Kitchen.ApplianceType,
+                        HasIsland = c.Kitchen.HasIsland
+                    } : null,
 
-                // Add other subtypes here as needed
-            }).ToList()
-        };
+                    ChairProperties = c.Type == "Chair" ? new ChairPropertiesDB
+                    {
+                        Material = c.Chair.Material,
+                        HasArmrest = c.Chair.HasArmrest
+                    } : null
 
-        _db.JetConfigs.Add(config);
+                    // Add other subtypes here as needed
+                }).ToList()
+            };
+
+            _db.JetConfigs.Add(config);
+        }
+
+        await _db.SaveChangesAsync();
+        return true;
     }
 
-    await _db.SaveChangesAsync();
-    return true;
-}
     public async Task<bool> SaveConfigAsync(Guid configId, string configJson)
-{
-    // 1. Find the existing config
-    var config = await _db.JetConfigs
-        .Include(c => c.InteriorComponents)
-        .FirstOrDefaultAsync(c => c.Id == configId);
+    {
+        // Your implementation here
+    }
+    public async Task<bool> SaveEditedComponentsAsync(Guid configId, string configJson)
+    {
+        // 1. Load JetConfig and hydrate components
+        var config = await _db.JetConfigs
+            .Include(c => c.InteriorComponents)
+            .FirstOrDefaultAsync(c => c.Id == configId);
 
-    if (config == null) return false;
+        if (config == null) return false;
 
-    // 2. Update config metadata
-    config.UpdatedAt = DateTime.UtcNow;
-    config.ConfigJson = configJson;
-
-    // 3. Deserialize layout map from configJson
-    var layoutMap = JsonSerializer.Deserialize<List<LayoutCell>>(configJson, _options);
+        // 2. Deserialize layout map to get component IDs
+        var layoutMap = JsonSerializer.Deserialize<List<LayoutCell>>(configJson, _options);
         if (layoutMap == null || !layoutMap.Any()) return false;
 
-        // 3. Query all matching components and include their subtype properties
-        var components = await _db.InteriorComponents
+        var componentIds = layoutMap.Select(c => c.ComponentId).Distinct().ToList();
+
+        // 3. Query matching components from DB
+        var dbComponents = await _db.InteriorComponents
             .Where(c => componentIds.Contains(c.ComponentId))
-            .Include(c => c.KitchenProperties)
-            .Include(c => c.SeatProperties)
-            .Include(c => c.LightingProperties)
-            .Include(c => c.TableProperties)
-            .Include(c => c.ScreenProperties)
-            .Include(c => c.StorageCabinetProperties)
-            .Include(c => c.EmergencyExitProperties)
             .ToListAsync();
-        
-        foreach (var entry in layoutMap)
+
+        // 4. Update each DB component using edited version from JetConfig
+        foreach (var dbComponent in dbComponents)
         {
-            // 4. Find the matching component
-            var component = await _db.InteriorComponents
-                .FirstOrDefaultAsync(c => c.ComponentId == entry.ComponentId);
+            // Get co-ordinates of component
+            var layoutCell = layoutMap.FirstOrDefault(c => c.ComponentId == dbComponent.ComponentId);
+            if (layoutCell == null) continue;
 
-            if (component == null) continue;
+            // Pull edited component from current JetConfig
+            var editedComponent = config.InteriorComponents
+                .FirstOrDefault(c => c.ComponentId == dbComponent.ComponentId);
 
-            // 5. Update position
-            component.X = entry.X;
-            component.Y = entry.Y;
-            component.UpdatedAt = DateTime.UtcNow;
+            if (editedComponent == null) continue;
 
-            // 6. Route to correct property table based on component.Type
-            switch (component.Type)
+            dbComponent.X = layoutCell.X;
+            dbComponent.Y = layoutCell.Y;
+
+            switch (dbComponent)
             {
-                case "Kitchen":
-                    var kitchen = await _db.KitchenProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (kitchen != null)
-                    {
-                        kitchen.ApplianceList = NewComponent.ApplianceList;
-                        kitchen.Refrigeration = NewComponent.Refrigeration;
-                        kitchen.FireSuppression = NewComponent.FireSuppression;
-                    }
+                case SeatComponentDB dbSeat when editedComponent is SeatComponentDB editedSeat:
+                    dbSeat.Recline = editedSeat.Recline;
+                    dbSeat.Massage = editedSeat.Massage;
+                    dbSeat.Accessibility = editedSeat.Accessibility;
+                    dbSeat.Lighting = editedSeat.Lighting;
                     break;
 
-                case "Seat":
-                    var chair = await _db.SeatProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (chair != null)
-                    {
-                        chair.IsAccessible = NewComponent.IsAccessible;
-                        chair.Recline = NewComponent.Recline;
-                        chair.Lighting = NewComponent.lighting;
-                        chair.Massage = NewComponent.Massage;
-                        chair.Accessibility = NewComponent.Accessibility;
-                    }
+                case KitchenComponentDB dbKitchen when editedComponent is KitchenComponentDB editedKitchen:
+                    dbKitchen.ApplianceList = editedKitchen.ApplianceList;
+                    dbKitchen.Refrigeration = editedKitchen.Refrigeration;
+                    dbKitchen.FireSuppression = editedKitchen.FireSuppression;
                     break;
 
-                case "Lighting":
-                    var lighting = await _db.LightingProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (lighting != null)
-                    {
-                        lighting.BrightnessLevel = NewComponent.BrightnessLevel;
-                        lighting.ColorTemperature = NewComponent.ColorTemperature;
-                        lighting.Dimmable = NewComponent.Dimmable;
-                    }
+                case LightingComponentDB dbLight when editedComponent is LightingComponentDB editedLight:
+                    dbLight.BrightnessLevel = editedLight.BrightnessLevel;
+                    dbLight.ColorTemperature = editedLight.ColorTemperature;
+                    dbLight.Dimmable = editedLight.Dimmable;
                     break;
 
-                case "Table":
-                    var table = await _db.TableProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (table != null)
-                    {
-                        table.SurfaceMaterial = NewComponent.SurfaceMaterial;
-                        table.Foldable = NewComponent.Foldable;
-                        table.SeatCount = NewComponent.SeatCount;
-                    }
+                case TableComponentDB dbTable when editedComponent is TableComponentDB editedTable:
+                    dbTable.SurfaceMaterial = editedTable.SurfaceMaterial;
+                    dbTable.Foldable = editedTable.Foldable;
+                    dbTable.SeatCount = editedTable.SeatCount;
                     break;
 
-                case "Screen":
-                    var screen = await _db.ScreenProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (screen != null)
-                    {
-                        screen.ContentFilters = NewComponent.ContentFilters;
-                        screen.Resolution = NewComponent.Resolution;
-                        screen.TouchEnabled = NewComponent.TouchEnabled;
-                    }
+                case ScreenComponentDB dbScreen when editedComponent is ScreenComponentDB editedScreen:
+                    dbScreen.ContentFilters = editedScreen.ContentFilters;
+                    dbScreen.Resolution = editedScreen.Resolution;
+                    dbScreen.TouchEnabled = editedScreen.TouchEnabled;
                     break;
 
-                case "StorageCabinet":
-                    var cabinet = await _db.StorageCabinetProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (cabinet != null)
-                    {
-                        cabinet.CapacityLitres = NewComponent.CapacityLitres;
-                        cabinet.Lockable = NewComponent.Lockable;
-                        cabinet.ShelfCount = NewComponent.ShelfCount;
-                    }
+                case StorageCabinetComponentDB dbCabinet when editedComponent is StorageCabinetComponentDB editedCabinet:
+                    dbCabinet.CapacityLitres = editedCabinet.CapacityLitres;
+                    dbCabinet.Lockable = editedCabinet.Lockable;
+                    dbCabinet.ShelfCount = editedCabinet.ShelfCount;
                     break;
 
-                case "EmergencyExit":
-                    var exit = await _db.EmergencyExitProperties.FirstOrDefaultAsync(p => p.ComponentId == component.Id);
-                    if (exit != null)
-                    {
-                        exit.ClearanceRadius = NewComponent.ClearanceRadius;
-                        exit.SignageType = NewComponent.SignageType;
-                        exit.AccessibilityFeatures = NewComponent.AccessibilityFeatures;
-                    }
+                case EmergencyExitComponentDB dbExit when editedComponent is EmergencyExitComponentDB editedExit:
+                    dbExit.ClearanceRadius = editedExit.ClearanceRadius;
+                    dbExit.SignageType = editedExit.SignageType;
+                    dbExit.AccessibilityFeatures = editedExit.AccessibilityFeatures;
                     break;
             }
         }
 
-    await _db.SaveChangesAsync();
-    return true;
-}
-
+        // 5. Save changes
+        await _db.SaveChangesAsync();
+        return true;
+    }
 
 }

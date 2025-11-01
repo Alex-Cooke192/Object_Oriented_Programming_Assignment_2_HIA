@@ -7,15 +7,6 @@ public class JetDbContext : DbContext
     public DbSet<JetConfigDB> JetConfigs { get; set; }
     public DbSet<InteriorComponentDB> InteriorComponents { get; set; }
 
-    public DbSet<SeatPropertiesDB> SeatProperties { get; set; }
-    public DbSet<ToiletPropertiesDB> ToiletProperties { get; set; }
-    public DbSet<TablePropertiesDB> TableProperties { get; set; }
-    public DbSet<ScreenPropertiesDB> ScreenProperties { get; set; }
-    public DbSet<LightingPropertiesDB> LightingProperties { get; set; }
-    public DbSet<EmergencyExitPropertiesDB> EmergencyExitProperties { get; set; }
-    public DbSet<KitchenPropertiesDB> KitchenProperties { get; set; }
-    public DbSet<StorageCabinetPropertiesDB> StorageCabinetProperties { get; set; }
-
     protected override void OnConfiguring(DbContextOptionsBuilder options)
     {
         options.UseSqlite("Data Source=Data/jet_interior.db");
@@ -23,57 +14,30 @@ public class JetDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-    // USER → JETCONFIGURATION (many-to-one)
-    modelBuilder.Entity<JetConfigDB>()
-        .HasOne(cfg => cfg.User)
-        .WithMany(u => u.JetConfigs)
-        .HasForeignKey(cfg => cfg.UserId);
+        // USER → JETCONFIGURATION (many-to-one)
+        modelBuilder.Entity<JetConfigDB>()
+            .HasOne(cfg => cfg.User)
+            .WithMany(u => u.JetConfigs)
+            .HasForeignKey(cfg => cfg.UserId);
 
-    // JETCONFIGURATION → INTERIOR COMPONENT
-    modelBuilder.Entity<InteriorComponentDB>()
-        .HasOne(comp => comp.Config)
-        .WithMany(cfg => cfg.InteriorComponents)
-        .HasForeignKey(comp => comp.ConfigID);
+        /*
+        // JETCONFIGURATION → INTERIOR COMPONENT
+        modelBuilder.Entity<InteriorComponentDB>()
+            .HasOne(comp => comp.Config)
+            .WithMany(cfg => cfg.InteriorComponents)
+            .HasForeignKey(comp => comp.ConfigID);
+            */
+        
+    //Base table for inheritance
+    modelBuilder.Entity<InteriorComponentDB>().ToTable("InteriorComponents");
 
-    // Component → Properties (one-to-one or one-to-many depending on design)
-    modelBuilder.Entity<SeatPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<ToiletPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<TablePropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<ScreenPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<LightingPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<EmergencyExitPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<KitchenPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
-
-    modelBuilder.Entity<StorageCabinetPropertiesDB>()
-        .HasOne(p => p.Component)
-        .WithMany()
-        .HasForeignKey(p => p.ComponentId);
+    // Subtype tables
+    modelBuilder.Entity<SeatComponentDB>().ToTable("SeatComponents");
+    modelBuilder.Entity<KitchenComponentDB>().ToTable("KitchenComponents");
+    modelBuilder.Entity<LightingComponentDB>().ToTable("LightingComponents");
+    modelBuilder.Entity<TableComponentDB>().ToTable("TableComponents");
+    modelBuilder.Entity<ScreenComponentDB>().ToTable("ScreenComponents");
+    modelBuilder.Entity<StorageCabinetComponentDB>().ToTable("StorageCabinetComponents");
+    modelBuilder.Entity<EmergencyExitComponentDB>().ToTable("EmergencyExitComponents");    
     }
 }

@@ -1,9 +1,9 @@
-namespace JetInteriorObject.Models
+namespace JetInteriorApp.Models
 {
-    public class KitchenProperties : ComponentProperties
+    public class KitchenProperties : ComponentPropertiesBase
     {
-        public int Id { get; set; }
-        public int ComponentId { get; set; }
+        public Guid Id { get; set; }
+        public Guid ComponentId { get; set; }
         public string ApplianceList { get; set; } // JSON stored as string
         public bool Refrigeration { get; set; }
         public bool FireSuppression { get; set; }

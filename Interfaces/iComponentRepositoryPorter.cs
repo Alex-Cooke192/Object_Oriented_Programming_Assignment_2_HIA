@@ -1,3 +1,5 @@
+using JetInteriorApp.Models; 
+
 namespace JetInteriorApp.Interfaces
 {
     public interface IComponentRepositoryPorter
