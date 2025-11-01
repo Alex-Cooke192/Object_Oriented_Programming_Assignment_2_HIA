@@ -1,8 +1,3 @@
-using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces;
-
 public class JsonConfigurationRepository : IConfigurationRepository
 {
     private readonly JetDbContext _db;
@@ -19,9 +14,6 @@ public class JsonConfigurationRepository : IConfigurationRepository
         _currentUserId = currentUserId;
     }
 
-    /// <summary>
-    /// Loads all configurations for the current user.
-    /// </summary>
     public async Task<IDictionary<Guid, JetLayout>> LoadAllAsync()
     {
         var configs = await _db.JetConfigurations
@@ -53,12 +45,10 @@ public class JsonConfigurationRepository : IConfigurationRepository
                     Height = ic.Height,
                     Depth = ic.Depth,
                     Cost = ic.Cost,
-                    Settings = ic.ComponentSettings == null ? null : new ComponentSettingsDTO
-                    {
-                        WifiAccess = ic.ComponentSettings.WifiAccess,
-                        ScreenAccess = ic.ComponentSettings.ScreenAccess,
-                        AccessibilitySettings = ic.ComponentSettings.AccessibilitySettings
-                    }
+                    // Deserialize type-specific settings into a dynamic object
+                    Settings = string.IsNullOrWhiteSpace(ic.ComponentSettings?.SettingsJson)
+                        ? null
+                        : JsonSerializer.Deserialize<JsonElement>(ic.ComponentSettings.SettingsJson, _options)
                 }).ToList()
             };
 
@@ -68,98 +58,6 @@ public class JsonConfigurationRepository : IConfigurationRepository
         return layouts;
     }
 
-    /// <summary>
-    /// Saves all JetLayouts for the current user.
-    /// </summary>
-    public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
-    {
-        foreach (var (configId, layout) in configs)
-        {
-            var existingConfig = await _db.JetConfigurations
-                .Include(c => c.InteriorComponents)
-                    .ThenInclude(ic => ic.ComponentSettings)
-                .FirstOrDefaultAsync(c => c.ConfigId == configId && c.UserId == _currentUserId);
-
-            if (existingConfig != null)
-            {
-                existingConfig.ModelName = layout.Name;
-                existingConfig.SeatingCapacity = layout.SeatingCapacity;
-                existingConfig.UpdatedAt = DateTime.UtcNow;
-
-                // Clear old components
-                _db.InteriorComponents.RemoveRange(existingConfig.InteriorComponents);
-
-                // Add new components
-                existingConfig.InteriorComponents = layout.Components.Select(c => new InteriorComponent
-                {
-                    ComponentId = c.ComponentId,
-                    ConfigId = configId,
-                    Name = c.Name,
-                    Type = c.Type,
-                    Tier = c.Tier,
-                    Material = c.Material,
-                    Color = c.Color,
-                    Position = JsonSerializer.Serialize(c.Position, _options),
-                    Width = c.Width,
-                    Height = c.Height,
-                    Depth = c.Depth,
-                    Cost = c.Cost,
-                    CreatedAt = DateTime.UtcNow,
-                    ComponentSettings = c.Settings == null ? null : new ComponentSettings
-                    {
-                        ComponentId = c.ComponentId,
-                        WifiAccess = c.Settings.WifiAccess,
-                        ScreenAccess = c.Settings.ScreenAccess,
-                        AccessibilitySettings = c.Settings.AccessibilitySettings
-                    }
-                }).ToList();
-            }
-            else
-            {
-                var newConfig = new JetConfiguration
-                {
-                    ConfigId = configId,
-                    UserId = _currentUserId,
-                    ModelName = layout.Name,
-                    SeatingCapacity = layout.SeatingCapacity,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow,
-                    InteriorComponents = layout.Components.Select(c => new InteriorComponent
-                    {
-                        ComponentId = c.ComponentId,
-                        ConfigId = configId,
-                        Name = c.Name,
-                        Type = c.Type,
-                        Tier = c.Tier,
-                        Material = c.Material,
-                        Color = c.Color,
-                        Position = JsonSerializer.Serialize(c.Position, _options),
-                        Width = c.Width,
-                        Height = c.Height,
-                        Depth = c.Depth,
-                        Cost = c.Cost,
-                        CreatedAt = DateTime.UtcNow,
-                        ComponentSettings = c.Settings == null ? null : new ComponentSettings
-                        {
-                            ComponentId = c.ComponentId,
-                            WifiAccess = c.Settings.WifiAccess,
-                            ScreenAccess = c.Settings.ScreenAccess,
-                            AccessibilitySettings = c.Settings.AccessibilitySettings
-                        }
-                    }).ToList()
-                };
-
-                await _db.JetConfigurations.AddAsync(newConfig);
-            }
-        }
-
-        await _db.SaveChangesAsync();
-        return true;
-    }
-
-    /// <summary>
-    /// Saves a single JetLayout config from JSON string.
-    /// </summary>
     public async Task<bool> SaveConfigAsync(Guid configId, string jetConfigJson)
     {
         var layout = JsonSerializer.Deserialize<JetLayout>(jetConfigJson, _options);
@@ -172,11 +70,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
 
         if (existing != null)
         {
-            existing.ModelName = layout.Name;
-            existing.SeatingCapacity = layout.SeatingCapacity;
-            existing.UpdatedAt = DateTime.UtcNow;
             _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
-
             existing.InteriorComponents = layout.Components.Select(c => new InteriorComponent
             {
                 ComponentId = c.ComponentId,
@@ -191,13 +85,10 @@ public class JsonConfigurationRepository : IConfigurationRepository
                 Height = c.Height,
                 Depth = c.Depth,
                 Cost = c.Cost,
-                CreatedAt = DateTime.UtcNow,
-                ComponentSettings = c.Settings == null ? null : new ComponentSettings
+                ComponentSettings = new ComponentSettings
                 {
                     ComponentId = c.ComponentId,
-                    WifiAccess = c.Settings.WifiAccess,
-                    ScreenAccess = c.Settings.ScreenAccess,
-                    AccessibilitySettings = c.Settings.AccessibilitySettings
+                    SettingsJson = c.Settings?.ToString() ?? "{}"
                 }
             }).ToList();
         }
@@ -225,13 +116,10 @@ public class JsonConfigurationRepository : IConfigurationRepository
                     Height = c.Height,
                     Depth = c.Depth,
                     Cost = c.Cost,
-                    CreatedAt = DateTime.UtcNow,
-                    ComponentSettings = c.Settings == null ? null : new ComponentSettings
+                    ComponentSettings = new ComponentSettings
                     {
                         ComponentId = c.ComponentId,
-                        WifiAccess = c.Settings.WifiAccess,
-                        ScreenAccess = c.Settings.ScreenAccess,
-                        AccessibilitySettings = c.Settings.AccessibilitySettings
+                        SettingsJson = c.Settings?.ToString() ?? "{}"
                     }
                 }).ToList()
             };
@@ -240,6 +128,13 @@ public class JsonConfigurationRepository : IConfigurationRepository
         }
 
         await _db.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
+    {
+        foreach (var (id, json) in configs)
+            await SaveConfigAsync(id, JsonSerializer.Serialize(json, _options));
         return true;
     }
 }
