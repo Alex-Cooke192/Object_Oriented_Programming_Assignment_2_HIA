@@ -12,7 +12,7 @@ namespace JetInteriorApp.Interfaces
         /// <summary>
         /// Loads all configuration entries asynchronously.
         /// </summary>
-        Task<IDictionary<Guid, JetLayout>> LoadAllAsync();
+        Task<List<JetConfiguration>> LoadAllAsync();
 
         /// <summary>
         /// Saves all configuration entries asynchronously.

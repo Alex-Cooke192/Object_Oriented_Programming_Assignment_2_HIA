@@ -14,7 +14,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
         _currentUserId = currentUserId;
     }
 
-    public async Task<IDictionary<Guid, JetLayout>> LoadAllAsync()
+    public async Task<List<JetConfiguration>> LoadAllAsync()
     {
         var configs = await _db.JetConfigurations
             .Where(c => c.UserId == _currentUserId)
@@ -27,7 +27,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
 
         foreach (var config in configs)
         {
-            var layout = new JetLayout
+            var layout = new Jet
             {
                 ConfigID = config.ConfigId,
                 Name = config.ModelName,
