@@ -58,7 +58,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
         return layouts;
     }
 
-    public async Task<bool> SaveConfigAsync(Guid configId, string jetConfigJson)
+    public async Task<bool> SaveConfigAsync(JetConfiguration config)
     {
         var layout = JsonSerializer.Deserialize<JetLayout>(jetConfigJson, _options);
         if (layout == null) return false;
@@ -131,7 +131,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
         return true;
     }
 
-    public async Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs)
+    public async Task<bool> SaveAllAsync(List<JetConfiguration> configs)
     {
         foreach (var (id, json) in configs)
             await SaveConfigAsync(id, JsonSerializer.Serialize(json, _options));

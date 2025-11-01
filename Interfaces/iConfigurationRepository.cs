@@ -17,11 +17,11 @@ namespace JetInteriorApp.Interfaces
         /// <summary>
         /// Saves all configuration entries asynchronously.
         /// </summary>
-        Task<bool> SaveAllAsync(Dictionary<Guid, JetLayout> configs);
+        Task<bool> SaveAllAsync(List<JetConfiguration> configs);
 
         /// <summary>
         /// Saves a single configuration entry asynchronously.
         /// </summary>
-        Task<bool> SaveConfigAsync(Guid configId, string JetConfig);
+        Task<bool> SaveConfigAsync(JetConfiguration config);
     }
 }
