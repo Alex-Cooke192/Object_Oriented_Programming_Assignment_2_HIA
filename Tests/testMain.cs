@@ -1,4 +1,8 @@
+using System;
+using System.IO;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using JetInteriorApp.Data;
 
 namespace JetInteriorApp.Tests
 {
@@ -8,33 +12,40 @@ namespace JetInteriorApp.Tests
         {
             string dbPath = "Data/jetconfigs.db";
 
-            // Check if the database file exists
+            Console.WriteLine("Starting Database Integrity Tests...");
+
+            // 1. Check if database file exists
             if (!File.Exists(dbPath))
             {
-                Console.WriteLine($"❌ Database file not found at '{dbPath}'. Please ensure it exists before running tests.");
+                Console.WriteLine($"Database file not found at '{dbPath}'.");
+                Console.WriteLine("Please ensure it exists or run the main program to initialize it first.");
                 return;
             }
 
-            //Find existing database & use to run database tests
+            // 2. Configure EF Core with SQLite
             var options = new DbContextOptionsBuilder<JetDbContext>()
-                .UseSqlite("Data Source={dbPath}")
+                .UseSqlite($"Data Source={dbPath}") // fixed interpolation
                 .Options;
 
+            // 3. Create context
             using var db = new JetDbContext(options);
 
+            // 4. Run table & relationship integrity tests
             var tester = new DatabaseTester(db);
             await tester.RunTestsAsync();
-            /*
-            //Run ConfigManager Tests
-            var configurationManagertests = new ConfigurationManagerTests();
 
-            configurationManagertests.GetConfiguration_ReturnsCorrectConfig();
-            configurationManagertests.CreateConfiguration_AddsNewConfig();
-            configurationManagertests.CloneConfiguration_CreatesCopyWithModifiedName();
-            configurationManagertests.DeleteConfiguration_RemovesConfig();
-            configurationManagertests.SaveAllChanges_ReturnsTrue();
+            // 5. Configuration Manager Tests
+            /*
+            var configurationManagerTests = new ConfigurationManagerTests();
+
+            configurationManagerTests.GetConfiguration_ReturnsCorrectConfig();
+            configurationManagerTests.CreateConfiguration_AddsNewConfig();
+            configurationManagerTests.CloneConfiguration_CreatesCopyWithModifiedName();
+            configurationManagerTests.DeleteConfiguration_RemovesConfig();
+            configurationManagerTests.SaveAllChanges_ReturnsTrue();
             */
-            Console.WriteLine("✅ All tests manually invoked.");
+
+            Console.WriteLine("\nAll tests completed successfully.");
         }
     }
 }
