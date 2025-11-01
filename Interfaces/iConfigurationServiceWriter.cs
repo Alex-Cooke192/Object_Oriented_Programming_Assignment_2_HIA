@@ -12,7 +12,7 @@ namespace JetInteriorApp.Interfaces
         /// <param name="layoutName">The name of the new layout.</param>
         /// <param name="layout">The JetLayout object to store.</param>
         /// <returns>The created JetConfiguration.</returns>
-        JetLayout CreateConfiguration(Guid userId, string Name, JetLayout layout);
+        JetConfiguration CreateConfiguration(Guid ConfigID);
         
         /*
         /// <summary>
@@ -29,14 +29,14 @@ namespace JetInteriorApp.Interfaces
         /// <param name="configId">The ID of the configuration to update.</param>
         /// <param name="layout">The JetLayout object. to be cloned</param>
         /// <returns>The cloned JetLayout</returns>
-        JetLayout CloneConfiguration(Guid configId, JetLayout layout);
+        JetLayout CloneConfiguration(JetConfiguration config);
 
         /// <summary>
         /// Deletes a configuration by its ID.
         /// </summary>
         /// <param name="configId">The ID of the configuration to delete.</param>
         /// <returns>True if the deletion was successful; otherwise, false.</returns>
-        bool DeleteConfiguration(Guid configId);
+        bool DeleteConfiguration(JetConfiguration config);
 
         /// <summary>
         /// Saves all pending changes to the underlying data store.
