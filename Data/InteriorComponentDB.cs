@@ -13,6 +13,6 @@ public class InteriorComponentDB
     public DateTime CreatedAt { get; set; }
 
     //Navigation
-    public JetConfigDB Config { get; set; }
+    public JetConfigDB Config { get; set; } //Reference to jet configs table
     public object ComponentSettings { get; set; }
 }
