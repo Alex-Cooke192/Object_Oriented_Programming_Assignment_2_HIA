@@ -1,3 +1,5 @@
+using JetInteriorApp.Models; 
+
 public class JsonConfigurationRepository : IConfigurationRepository
 {
     private readonly JetDbContext _db;
