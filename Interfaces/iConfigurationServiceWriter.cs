@@ -29,7 +29,7 @@ namespace JetInteriorApp.Interfaces
         /// <param name="configId">The ID of the configuration to update.</param>
         /// <param name="layout">The JetLayout object. to be cloned</param>
         /// <returns>The cloned JetLayout</returns>
-        JetLayout CloneConfiguration(JetConfiguration config);
+        JetConfiguration CloneConfiguration(JetConfiguration config);
 
         /// <summary>
         /// Deletes a configuration by its ID.
