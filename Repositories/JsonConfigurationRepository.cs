@@ -62,55 +62,56 @@ public class JsonConfigurationRepository : IConfigurationRepository
 
     // Matches interface exactly
     public async Task<bool> SaveConfigAsync(JetConfiguration config)
-{
-    if (config == null) return false;
-
-    // Convert to DB entity
-    var configDb = new JetConfigurationDB
     {
-        ConfigID = config.ConfigID,
-        UserID = _currentUserId,
-        Name = config.Name,
-        SeatingCapacity = config.SeatingCapacity,
-        CreatedAt = config.CreatedAt,
-        UpdatedAt = DateTime.UtcNow,
-        InteriorComponents = config.InteriorComponents?.Select(c => new InteriorComponentDB
+        if (config == null) return false;
+
+        // Convert to DB entity
+        var configDb = new JetConfigurationDB
         {
-            ComponentID = c.ComponentID, 
             ConfigID = config.ConfigID,
-            Name = c.Name,
-            Type = c.Type,
-            Tier = c.Tier,
-            Material = c.Material,
-            Width = c.Width,
-            Height = c.Height,
-            Depth = c.Depth,
-            Cost = c.Cost,
-            PropertiesJson = c.PropertiesJson
-        }).ToList()
-    };
+            UserID = _currentUserId,
+            Name = config.Name,
+            SeatingCapacity = config.SeatingCapacity,
+            CreatedAt = config.CreatedAt,
+            UpdatedAt = DateTime.UtcNow,
+            InteriorComponents = config.InteriorComponents.Select(c => new InteriorComponentDB
+            {
+                ComponentID = c.ComponentID, 
+                ConfigID = config.ConfigID,
+                Name = c.Name,
+                Type = c.Type,
+                Tier = c.Tier,
+                Material = c.Material,
+                Width = c.Width,
+                Height = c.Height,
+                Depth = c.Depth,
+                Cost = c.Cost,
+                PropertiesJson = c.PropertiesJson
+            }).ToList()
+        };
+        // Try find if this config exists currently in the database
+        var existing = await _db.JetConfigurations
+            .Include(c => c.InteriorComponents)
+            .FirstOrDefaultAsync(c => c.ConfigID == configDb.ConfigID && c.UserID == _currentUserId);
+        // If the configuration already exists, update relevant fields
+        if (existing != null)
+        {
+            _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
 
-    var existing = await _db.JetConfigurations
-        .Include(c => c.InteriorComponents)
-        .FirstOrDefaultAsync(c => c.ConfigID == configDb.ConfigID && c.UserID == _currentUserId);
-
-    if (existing != null)
-    {
-        _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
-
-        existing.InteriorComponents = configDb.InteriorComponents;
-        existing.Name = configDb.Name;
-        existing.SeatingCapacity = configDb.SeatingCapacity;
-        existing.UpdatedAt = DateTime.UtcNow;
+            existing.InteriorComponents = configDb.InteriorComponents;
+            existing.Name = configDb.Name;
+            existing.SeatingCapacity = configDb.SeatingCapacity;
+            existing.UpdatedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            // No existing config was found, so create new one
+            await _db.JetConfigurations.AddAsync(configDb);
+        }
+        // Commit changes
+        await _db.SaveChangesAsync();
+        return true;
     }
-    else
-    {
-        await _db.JetConfigurations.AddAsync(configDb);
-    }
-
-    await _db.SaveChangesAsync();
-    return true;
-}
 
 
     // Matches interface exactly
@@ -134,7 +135,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
             {
                 _db.InteriorComponents.RemoveRange(config.InteriorComponents);
             }
-
+            // Remove the deleted configuration
             _db.JetConfigurations.RemoveRange(toRemove);
         }
 
