@@ -34,7 +34,14 @@ namespace JetInteriorApp.Tests
             var tester = new DatabaseTester(db);
             await tester.RunTestsAsync();
 
-            // 5. Configuration Manager Tests
+            // 5. Run unit test on JsonConfigurationRepository
+            var JsonRepoUnitTester = new JsonConfigurationRepositoryTests();
+            await JsonRepoUnitTester.RunTestsAsync(); 
+
+            // 6. Run unit test on ConfigurationManager
+
+
+
             /*
             var configurationManagerTests = new ConfigurationManagerTests();
 
