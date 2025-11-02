@@ -21,6 +21,7 @@ namespace JetInteriorApp.Data
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
 
+        // Navigation to Users table
         public UserDB User { get; set; }
         public ICollection<InteriorComponentDB> InteriorComponents { get; set; } = new List<InteriorComponentDB>();
     }
