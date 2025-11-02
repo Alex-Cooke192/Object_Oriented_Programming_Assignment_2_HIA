@@ -2,4 +2,6 @@
 /bin/
 /obj/
 /Data/jetconfigs.db
+/Data/jetconfigs.db-shm
+/Data/jetconfigs.db-wal
 /Object_Oriented_Programming_Assignment_2_HIA-1.sln
