@@ -11,17 +11,14 @@ namespace JetInteriorApp.Models
 
         [ForeignKey("User")]
         public Guid UserID { get; set; }
-        public string Name { get; set; }
-        public string CabinDimensions { get; set; }
+        public string? Name { get; set; }
+        public string? CabinDimensions { get; set; }
         public int SeatingCapacity { get; set; }
         public int Version { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public ICollection<InteriorComponent>? InteriorComponents { get; set; }
 
-        public string ConfigJson { get; set; }
-
-        public User User { get; set; }
-        public ICollection<InteriorComponent> InteriorComponents { get; set; }
     }
 }
