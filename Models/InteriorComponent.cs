@@ -16,13 +16,7 @@ namespace JetInteriorApp.Models
         public string Type { get; set; }
         public string Tier { get; set; }
         public string Material { get; set; }
-
-        // Position data flattened
-        public float X { get; set; }
-        public float Y { get; set; }
-        public float Width { get; set; }
-        public float Height { get; set; }
-        public float Depth { get; set; }
+        public string Position { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Flexible JSON for type-specific properties

@@ -49,10 +49,7 @@ public class JsonConfigurationRepository : IConfigurationRepository
             Type = ic.Type,
             Tier = ic.Tier,
             Material = ic.Material,
-            Width = ic.Width,
-            Height = ic.Height,
-            Depth = ic.Depth,
-            Cost = ic.Cost,
+            Position = ic.Position, 
             PropertiesJson = ic.PropertiesJson
         }).ToList()
     }).ToList();
@@ -83,10 +80,8 @@ public class JsonConfigurationRepository : IConfigurationRepository
                 Type = c.Type,
                 Tier = c.Tier,
                 Material = c.Material,
-                Width = c.Width,
-                Height = c.Height,
-                Depth = c.Depth,
-                Cost = c.Cost,
+                Position = c.Position, 
+                CreatedAt = c.CreatedAt, 
                 PropertiesJson = c.PropertiesJson
             }).ToList()
         };

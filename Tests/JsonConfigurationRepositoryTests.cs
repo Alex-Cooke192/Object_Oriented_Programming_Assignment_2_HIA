@@ -17,6 +17,7 @@ public class JsonConfigurationRepositoryTests
         return new JetDbContext(options);
     }
 
+    [Fact]
     public async Task RunTestsAsync()
     {
         Console.WriteLine("\nRunning JsonConfigurationRepository tests");
@@ -27,7 +28,6 @@ public class JsonConfigurationRepositoryTests
         await SaveAllAsync_Should_Remove_Deleted_Configs();
 
         Console.WriteLine("\nJsonConfigurationRepository: All tests executed successfully.");
-
     }
 
     [Fact]
@@ -41,9 +41,11 @@ public class JsonConfigurationRepositoryTests
         var newConfig = new JetConfiguration
         {
             ConfigID = Guid.NewGuid(),
+            UserID = userId,
             Name = "Test Jet Config",
-            CabinDimensions = "10x3x2.5m", 
+            CabinDimensions = "10x3x2.5m",
             SeatingCapacity = 8,
+            Version = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponent>
@@ -51,14 +53,13 @@ public class JsonConfigurationRepositoryTests
                 new InteriorComponent
                 {
                     ComponentID = Guid.NewGuid(),
+                    ConfigID = Guid.NewGuid(),
                     Name = "Seat A1",
                     Type = "Seat",
                     Tier = "Business",
                     Material = "Leather",
-                    Width = 0.5f,
-                    Height = 1.0f,
-                    Depth = 0.6f,
-                    Cost = 1000f,
+                    Position = "{\"row\":1,\"col\":1}", // ✅ Added
+                    CreatedAt = DateTime.UtcNow,       // ✅ Added
                     PropertiesJson = "{\"recline\": true}"
                 }
             }
@@ -93,8 +94,9 @@ public class JsonConfigurationRepositoryTests
             ConfigID = configId,
             UserID = userId,
             Name = "Original Name",
-            CabinDimensions = "Original Dimensions", 
+            CabinDimensions = "Original Dimensions",
             SeatingCapacity = 6,
+            Version = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponentDB>()
@@ -106,9 +108,11 @@ public class JsonConfigurationRepositoryTests
         var updatedConfig = new JetConfiguration
         {
             ConfigID = configId,
+            UserID = userId,
             Name = "Updated Name",
             CabinDimensions = "Updated Dimensions",
             SeatingCapacity = 10,
+            Version = 3,
             CreatedAt = existingDb.CreatedAt,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponent>()
@@ -137,11 +141,13 @@ public class JsonConfigurationRepositoryTests
             {
                 ConfigID = Guid.NewGuid(),
                 UserID = userId,
-                Name = "My Jet 1",
-                CabinDimensions = "3x2.5x7m",
-                SeatingCapacity = 4, 
+                Name = "Jet 1",
+                CabinDimensions = "10x3x2.5m",
+                SeatingCapacity = 6,
+                Version = 1,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = new List<InteriorComponentDB>()
             },
             new JetConfigurationDB
             {
@@ -149,9 +155,11 @@ public class JsonConfigurationRepositoryTests
                 UserID = otherUserId,
                 Name = "Other User Jet",
                 CabinDimensions = "1.5x4x8",
-                SeatingCapacity = 6, 
+                SeatingCapacity = 6,
+                Version = 1, // ✅ Added to match model
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = new List<InteriorComponentDB>() // ✅ Added to prevent null ref
             }
         );
         await db.SaveChangesAsync();
@@ -163,7 +171,7 @@ public class JsonConfigurationRepositoryTests
 
         // Assert
         Assert.Single(configs);
-        Assert.Equal("My Jet 1", configs[0].Name);
+        Assert.Equal("Jet 1", configs[0].Name);
     }
 
     [Fact]
@@ -179,6 +187,9 @@ public class JsonConfigurationRepositoryTests
             ConfigID = Guid.NewGuid(),
             UserID = userId,
             Name = "Config 1",
+            CabinDimensions = "5x3x2.5m", // ✅ Added
+            SeatingCapacity = 8,          // ✅ Added
+            Version = 1,                  // ✅ Added
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponentDB>()
@@ -188,6 +199,9 @@ public class JsonConfigurationRepositoryTests
             ConfigID = Guid.NewGuid(),
             UserID = userId,
             Name = "Config 2",
+            CabinDimensions = "6x4x3m",   // ✅ Added
+            SeatingCapacity = 10,         // ✅ Added
+            Version = 1,                  // ✅ Added
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponentDB>()
@@ -201,9 +215,11 @@ public class JsonConfigurationRepositoryTests
             new JetConfiguration
             {
                 ConfigID = config1.ConfigID,
+                UserID = userId,
                 Name = "Config 1",
-                CabinDimensions = "4x4x4m", 
+                CabinDimensions = "4x4x4m",
                 SeatingCapacity = 8,
+                Version = 1, // ✅ Added
                 CreatedAt = config1.CreatedAt,
                 UpdatedAt = DateTime.UtcNow,
                 InteriorComponents = new List<InteriorComponent>()
