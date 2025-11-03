@@ -12,11 +12,11 @@ namespace JetInteriorApp.Services.Configuration
     /// </summary>
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
-        private readonly JsonConfigurationRepository _repository;
+        private readonly IConfigurationRepository _repository;
         private readonly ConcurrentDictionary<Guid, JetConfiguration> _inMemoryConfigs;
         private readonly Guid _userId;
 
-        public ConfigurationManager(JsonConfigurationRepository repository, Guid userId)
+        public ConfigurationManager(IConfigurationRepository repository, Guid userId)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _userId = userId;
@@ -26,7 +26,7 @@ namespace JetInteriorApp.Services.Configuration
         /// <summary>
         /// Loads all configurations from the repository into memory.
         /// </summary>
-        public async Task GetConfigurationsForUserAsync()
+        public async Task InitializeAsync()
         {
             var configs = await _repository.LoadAllAsync();
             _inMemoryConfigs.Clear();
