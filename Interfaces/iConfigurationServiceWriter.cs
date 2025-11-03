@@ -1,5 +1,6 @@
 using JetInteriorApp.Interfaces;
 using JetInteriorApp.Models; 
+using System.Threading.Tasks;
 
 namespace JetInteriorApp.Interfaces
 {
@@ -12,7 +13,7 @@ namespace JetInteriorApp.Interfaces
         /// <param name="layoutName">The name of the new layout.</param>
         /// <param name="layout">The JetLayout object to store.</param>
         /// <returns>The created JetConfiguration.</returns>
-        JetConfiguration CreateConfiguration(Guid ConfigID);
+        Task<JetConfiguration> CreateConfigurationAsync(string name, JetConfiguration baseLayout);
         
         /*
         /// <summary>
@@ -29,19 +30,19 @@ namespace JetInteriorApp.Interfaces
         /// <param name="configId">The ID of the configuration to update.</param>
         /// <param name="layout">The JetLayout object. to be cloned</param>
         /// <returns>The cloned JetLayout</returns>
-        JetConfiguration CloneConfiguration(JetConfiguration config);
+        Task<JetConfiguration?> CloneConfigurationAsync(Guid configId);
 
         /// <summary>
         /// Deletes a configuration by its ID.
         /// </summary>
         /// <param name="configId">The ID of the configuration to delete.</param>
         /// <returns>True if the deletion was successful; otherwise, false.</returns>
-        bool DeleteConfiguration(JetConfiguration config);
+        Task<bool> DeleteConfigurationAsync(Guid id);
 
         /// <summary>
         /// Saves all pending changes to the underlying data store.
         /// </summary>
         /// <returns>True if the save was successful; otherwise, false.</returns>
-        bool SaveAllChanges();
+        Task<bool> SaveAllChangesAsync();
     }
 }
