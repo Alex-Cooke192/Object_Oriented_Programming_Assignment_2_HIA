@@ -155,48 +155,5 @@ namespace JetInteriorApp.Services.Configuration
                 return false;
             }
         }
-
-        /// <summary>
-        /// Exports a configuration to JSON.
-        /// </summary>
-        public string ExportConfigurationToJson(Guid id)
-        {
-            if (_inMemoryConfigs.TryGetValue(id, out var config))
-            {
-                return JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
-            }
-
-            return string.Empty;
-        }
-
-        /// <summary>
-        /// Imports a configuration from JSON and saves it.
-        /// </summary>
-        public async Task<JetConfiguration?> ImportConfigurationFromJsonAsync(string json)
-        {
-            try
-            {
-                var imported = JsonSerializer.Deserialize<JetConfiguration>(json);
-                if (imported == null) return null;
-
-                imported.ConfigID = Guid.NewGuid();
-                imported.UserID = _userId;
-                imported.CreatedAt = DateTime.UtcNow;
-                imported.UpdatedAt = DateTime.UtcNow;
-
-                var success = await _repository.SaveConfigAsync(imported);
-                if (success)
-                {
-                    _inMemoryConfigs[imported.ConfigID] = imported;
-                    return imported;
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Import failed: {ex.Message}");
-            }
-
-            return null;
-        }
     }
 }
