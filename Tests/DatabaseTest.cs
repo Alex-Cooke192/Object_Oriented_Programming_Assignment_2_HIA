@@ -166,7 +166,7 @@ public class DatabaseTester
             Name = config.Name,
             CabinDimensions = config.CabinDimensions,
             SeatingCapacity = config.SeatingCapacity,
-            Version = config.Version,
+            Version = config.Version ?? 0,
             CreatedAt = config.CreatedAt,
             UpdatedAt = config.UpdatedAt,
         };
