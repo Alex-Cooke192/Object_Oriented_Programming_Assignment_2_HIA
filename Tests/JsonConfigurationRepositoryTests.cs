@@ -27,7 +27,7 @@ public class JsonConfigurationRepositoryTests
         await RunTestAsync(nameof(LoadAllAsync_Should_Return_User_Configs), LoadAllAsync_Should_Return_User_Configs);
         await RunTestAsync(nameof(SaveAllAsync_Should_Remove_Deleted_Configs), SaveAllAsync_Should_Remove_Deleted_Configs);
 
-        Console.WriteLine("\n===== All Tests Executed =====");
+        Console.WriteLine("\n===== All JsonConfigurationRepository Tests Executed =====");
     }
 
     private async Task RunTestAsync(string testName, Func<Task> testFunc)
