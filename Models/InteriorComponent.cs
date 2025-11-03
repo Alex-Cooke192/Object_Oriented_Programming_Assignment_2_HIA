@@ -23,8 +23,6 @@ namespace JetInteriorApp.Models
         public float Width { get; set; }
         public float Height { get; set; }
         public float Depth { get; set; }
-
-        public float Cost { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Flexible JSON for type-specific properties
