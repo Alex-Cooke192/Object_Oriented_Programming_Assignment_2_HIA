@@ -5,7 +5,12 @@ using System.ComponentModel;
 using JetInteriorApp.Models; 
 using JetInteriorApp.Data;
 using Microsoft.EntityFrameworkCore;
-using Xunit; 
+using Xunit;
+
+// This script is used to test database integrity 
+// Can data be written to/read from the database
+// It does NOT test the JsonConfigurationRepository script
+// - this is tackled by JsonConfigurationRepositoryTests.cs
 
 public class DatabaseTester
 {
@@ -33,7 +38,7 @@ public class DatabaseTester
         await CreateUserTestAsync();
 
         // Create a test JetConfiguration & try add to a user  
-        await Can_Add_JetConfiguration_For_User(); 
+        await Can_Add_JetConfiguration_For_User();
 
         // Test all tables again to check entry of new records
         await TestTableAsync("Users", _db.Users.CountAsync());
@@ -114,7 +119,7 @@ public class DatabaseTester
             Console.WriteLine($"❌ Error creating user: {ex.Message}");
         }
     }
-    
+
     public async Task Can_Add_JetConfiguration_For_User()
     {
         // Try to get an existing user
