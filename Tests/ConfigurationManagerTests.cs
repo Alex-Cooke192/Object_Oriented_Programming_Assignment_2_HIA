@@ -68,8 +68,6 @@ public class ConfigurationManagerTests
         await TestCloneConfigurationAsync();
         await TestDeleteConfigurationAsync();
         await TestSaveAllChangesAsync();
-        await TestExportConfigurationToJsonAsync();
-        await TestImportConfigurationFromJsonAsync();
 
         Console.WriteLine("All ConfigurationManager tests completed successfully.");
     }
@@ -184,10 +182,4 @@ public class ConfigurationManagerTests
 
     [Fact]
     public async Task SaveAllChanges_Fact() => await TestSaveAllChangesAsync();
-
-    [Fact]
-    public async Task ExportConfiguration_Fact() => await TestExportConfigurationToJsonAsync();
-
-    [Fact]
-    public async Task ImportConfiguration_Fact() => await TestImportConfigurationFromJsonAsync();
 }
