@@ -72,11 +72,12 @@ public class JsonConfigurationRepository : IConfigurationRepository
             UserID = _currentUserId,
             Name = config.Name,
             SeatingCapacity = config.SeatingCapacity,
+            CabinDimensions = config.CabinDimensions, 
             CreatedAt = config.CreatedAt,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = config.InteriorComponents.Select(c => new InteriorComponentDB
             {
-                ComponentID = c.ComponentID, 
+                ComponentID = c.ComponentID,
                 ConfigID = config.ConfigID,
                 Name = c.Name,
                 Type = c.Type,
