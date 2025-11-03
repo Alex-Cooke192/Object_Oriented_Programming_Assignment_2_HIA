@@ -1,107 +1,202 @@
 using System.Text.Json;
 using JetInteriorApp.Models;
 using JetInteriorApp.Interfaces;
+using System.Collections.Concurrent;
+using Microsoft.EntityFrameworkCore;
 
 namespace JetInteriorApp.Services.Configuration
-
 {
-    /*
+    /// <summary>
+    /// Service responsible for managing in-memory configurations
+    /// and synchronizing with the persistent repository layer.
+    /// </summary>
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
-        private readonly IConfigurationRepository _repository;
-        private readonly List<JetLayout> _inMemoryConfigs;
+        private readonly IJsonConfigurationRepository _repository;
+        private readonly ConcurrentDictionary<Guid, JetConfiguration> _inMemoryConfigs;
+        private readonly Guid _userId;
 
-        public ConfigurationManager(IConfigurationRepository repository)
+        public ConfigurationManager(IJsonConfigurationRepository repository, Guid userId)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _inMemoryConfigs = LoadAllFromRepository();
+            _userId = userId;
+            _inMemoryConfigs = new ConcurrentDictionary<Guid, JetConfiguration>();
         }
 
-        private List<JetLayout> LoadAllFromRepository()
+        /// <summary>
+        /// Loads all configurations from the repository into memory.
+        /// </summary>
+        public async Task InitializeAsync()
         {
-            var raw = _repository.LoadAll(); // Dictionary<Guid, string>
-            var configs = new List<JetLayout>();
+            var configs = await _repository.LoadAllAsync();
+            _inMemoryConfigs.Clear();
 
-            foreach (var kvp in raw)
+            foreach (var config in configs)
             {
-                try
-                {
-                    var layout = JsonSerializer.Deserialize<JetLayout>(kvp.Value);
-                    configs.Add(new JetLayout
-                    {
-                        ID = kvp.Key,
-                        ConfigJson = kvp.Value,
-                        LayoutName = layout?.LayoutName,
-                        UserId = layout?.UserId ?? Guid.Empty
-                    });
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"❌ Failed to deserialize layout {kvp.Key}: {ex.Message}");
-                }
+                _inMemoryConfigs[config.ConfigID] = config;
             }
-
-            return configs;
         }
 
-        public JetLayout GetConfiguration(Guid id)
+        /// <summary>
+        /// Retrieves a configuration from memory by ID.
+        /// </summary>
+        public JetConfiguration? GetConfiguration(Guid id)
         {
-            return _inMemoryConfigs.FirstOrDefault(c => c.ID == id);
-        }
-
-
-        public JetLayout CreateConfiguration(Guid userId, string layoutName, JetLayout layout)
-        {
-            var newId = Guid.NewGuid();
-            layout.UserId = userId;
-            layout.LayoutName = layoutName;
-
-            var json = JsonSerializer.Serialize(layout);
-            var config = new JetLayout
-            {
-                ID = newId,
-                UserId = userId,
-                LayoutName = layoutName,
-                ConfigJson = json
-            };
-
-            _inMemoryConfigs.Add(config);
+            _inMemoryConfigs.TryGetValue(id, out var config);
             return config;
         }
 
-        public JetLayout CloneConfiguration(Guid id, JetLayout config)
+        /// <summary>
+        /// Creates a new configuration and saves it to the repository.
+        /// </summary>
+        public async Task<JetConfiguration> CreateConfigurationAsync(string name, JetConfiguration baseLayout)
         {
-            var original = GetConfiguration(id);
-            if (original == null) return null;
+            var newConfig = new JetConfiguration
+            {
+                ConfigID = Guid.NewGuid(),
+                UserID = _userId,
+                Name = name,
+                CabinDimensions = baseLayout.CabinDimensions,
+                SeatingCapacity = baseLayout.SeatingCapacity,
+                Version = (baseLayout.Version ?? 0) + 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = baseLayout.InteriorComponents?.Select(c => new InteriorComponent
+                {
+                    ComponentID = Guid.NewGuid(),
+                    ConfigID = Guid.Empty, // will be set on save
+                    Name = c.Name,
+                    Type = c.Type,
+                    Tier = c.Tier,
+                    Material = c.Material,
+                    Position = c.Position,
+                    CreatedAt = DateTime.UtcNow,
+                    PropertiesJson = c.PropertiesJson
+                }).ToList() ?? new List<InteriorComponent>()
+            };
 
-            var layout = JsonSerializer.Deserialize<JetLayout>(original.ConfigJson);
-            layout.LayoutName += " (Clone)";
-            layout.UserId = original.UserId;
+            var success = await _repository.SaveConfigAsync(newConfig);
+            if (success)
+            {
+                _inMemoryConfigs[newConfig.ConfigID] = newConfig;
+            }
 
-            return CreateConfiguration(original.UserId, layout.LayoutName, layout);
+            return newConfig;
         }
 
-        public bool DeleteConfiguration(Guid id)
+        /// <summary>
+        /// Clones an existing configuration for the same user.
+        /// </summary>
+        public async Task<JetConfiguration?> CloneConfigurationAsync(Guid configId)
         {
-            var config = GetConfiguration(id);
-            if (config == null) return false;
+            if (!_inMemoryConfigs.TryGetValue(configId, out var original))
+                return null;
 
-            return _inMemoryConfigs.Remove(config);
+            var clone = new JetConfiguration
+            {
+                ConfigID = Guid.NewGuid(),
+                UserID = original.UserID,
+                Name = $"{original.Name} (Clone)",
+                CabinDimensions = original.CabinDimensions,
+                SeatingCapacity = original.SeatingCapacity,
+                Version = (original.Version ?? 0) + 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = original.InteriorComponents?.Select(c => new InteriorComponent
+                {
+                    ComponentID = Guid.NewGuid(),
+                    ConfigID = Guid.Empty,
+                    Name = c.Name,
+                    Type = c.Type,
+                    Tier = c.Tier,
+                    Material = c.Material,
+                    Position = c.Position,
+                    CreatedAt = DateTime.UtcNow,
+                    PropertiesJson = c.PropertiesJson
+                }).ToList() ?? new List<InteriorComponent>()
+            };
+
+            var success = await _repository.SaveConfigAsync(clone);
+            if (success)
+            {
+                _inMemoryConfigs[clone.ConfigID] = clone;
+                return clone;
+            }
+
+            return null;
         }
 
-        public bool SaveAllChanges()
+        /// <summary>
+        /// Deletes a configuration from memory and the repository.
+        /// </summary>
+        public async Task<bool> DeleteConfigurationAsync(Guid id)
+        {
+            if (!_inMemoryConfigs.TryRemove(id, out _))
+                return false;
+
+            // After removal, persist updated list
+            return await SaveAllChangesAsync();
+        }
+
+        /// <summary>
+        /// Persists all in-memory configurations to the repository.
+        /// </summary>
+        public async Task<bool> SaveAllChangesAsync()
         {
             try
             {
-                var dict = _inMemoryConfigs.ToDictionary(c => c.ID, c => c.ConfigJson);
-                return _repository.SaveAll(dict);
+                var configs = _inMemoryConfigs.Values.ToList();
+                await _repository.SaveAllAsync(configs);
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Save failed: {ex.Message}");
+                Console.WriteLine($"SaveAllChangesAsync failed: {ex.Message}");
                 return false;
             }
         }
+
+        /// <summary>
+        /// Exports a configuration to JSON.
+        /// </summary>
+        public string ExportConfigurationToJson(Guid id)
+        {
+            if (_inMemoryConfigs.TryGetValue(id, out var config))
+            {
+                return JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Imports a configuration from JSON and saves it.
+        /// </summary>
+        public async Task<JetConfiguration?> ImportConfigurationFromJsonAsync(string json)
+        {
+            try
+            {
+                var imported = JsonSerializer.Deserialize<JetConfiguration>(json);
+                if (imported == null) return null;
+
+                imported.ConfigID = Guid.NewGuid();
+                imported.UserID = _userId;
+                imported.CreatedAt = DateTime.UtcNow;
+                imported.UpdatedAt = DateTime.UtcNow;
+
+                var success = await _repository.SaveConfigAsync(imported);
+                if (success)
+                {
+                    _inMemoryConfigs[imported.ConfigID] = imported;
+                    return imported;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Import failed: {ex.Message}");
+            }
+
+            return null;
+        }
     }
-    */
 }
