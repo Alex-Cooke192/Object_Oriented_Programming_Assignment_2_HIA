@@ -20,15 +20,20 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var connectionString = $"Data Source={_dbPath}";
+        var connection = new SqliteConnection("DataSource=:memory:"); // in-memory DB
+        await connection.OpenAsync();
+
         var options = new DbContextOptionsBuilder<JetDbContext>()
-            .UseSqlite(connectionString)
+            .UseSqlite(connection)
             .Options;
 
         _db = new JetDbContext(options);
         await _db.Database.EnsureCreatedAsync();
 
-        // Seed a test user for foreign key integrity
+        _repository = new JsonConfigurationRepository(_db, _userId);
+        _manager = new ConfigurationManager(_repository, _userId);
+
+        // Seed user
         _db.Users.Add(new UserDB
         {
             UserID = _userId,
@@ -37,17 +42,13 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
-
-        _repository = new JsonConfigurationRepository(_db, _userId);
-        _manager = new ConfigurationManager(_repository, _userId);
     }
 
     public async Task DisposeAsync()
     {
-        await _db.DisposeAsync();
-        if (File.Exists(_dbPath))
-            File.Delete(_dbPath);
+        await _db.DisposeAsync();   // Just dispose, no file deletion needed
     }
+
 
     [Fact]
     public async Task Configuration_CRUD_FullIntegration_Works()
@@ -58,7 +59,7 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             ConfigID = Guid.NewGuid(),
             UserID = _userId,
             Name = "BaseLayout",
-            CabinDimensions = "Medium",
+            CabinDimensions = "7x4.5x1.9m",
             SeatingCapacity = 6,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
