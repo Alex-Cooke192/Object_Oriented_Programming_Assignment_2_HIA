@@ -86,43 +86,43 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             }
         };
 
-        Console.WriteLine("Creating new configuration via ConfigurationManager...");
+        Console.WriteLine("\nCreating new configuration via ConfigurationManager...");
         var newConfig = await _manager.CreateConfigurationAsync("TestConfig", baseLayout);
         Assert.NotNull(newConfig);
-        Console.WriteLine($"Configuration created: {newConfig.Name} ({newConfig.ConfigID})");
+        Console.WriteLine($"\nConfiguration created: {newConfig.Name} ({newConfig.ConfigID})");
 
         // Reload from DB
-        Console.WriteLine("Loading configurations from repository...");
+        Console.WriteLine("\nLoading configurations from repository...");
         var loadedConfigs = await _repository.LoadAllAsync();
         Assert.Single(loadedConfigs);
         var loaded = loadedConfigs.First();
-        Console.WriteLine($"Loaded configuration: {loaded.Name} with {loaded.InteriorComponents.Count} components");
+        Console.WriteLine($"\nLoaded configuration: {loaded.Name} with {loaded.InteriorComponents.Count} components");
 
         // Clone configuration
-        Console.WriteLine("Cloning configuration...");
+        Console.WriteLine("\nCloning configuration...");
         await _manager.InitializeAsync();
         var cloned = await _manager.CloneConfigurationAsync(newConfig.ConfigID);
         Assert.NotNull(cloned);
-        Console.WriteLine($"Cloned configuration: {cloned.Name} ({cloned.ConfigID})");
+        Console.WriteLine($"\nCloned configuration: {cloned.Name} ({cloned.ConfigID})");
 
         // Save all
-        Console.WriteLine("Saving all in-memory configurations...");
+        Console.WriteLine("\nSaving all in-memory configurations...");
         var saveAllResult = await _manager.SaveAllChangesAsync();
         Assert.True(saveAllResult);
-        Console.WriteLine("All configurations saved successfully.");
+        Console.WriteLine("\nAll configurations saved successfully.");
 
         // Delete original
-        Console.WriteLine($"Deleting original configuration: {newConfig.Name}...");
+        Console.WriteLine($"\nDeleting original configuration: {newConfig.Name}...");
         var deleteResult = await _manager.DeleteConfigurationAsync(newConfig.ConfigID);
         Assert.True(deleteResult);
-        Console.WriteLine("Original configuration deleted.");
+        Console.WriteLine("\nOriginal configuration deleted.");
 
         // Verify remaining
         var remainingConfigs = await _repository.LoadAllAsync();
         Assert.Single(remainingConfigs);
         Assert.Equal(cloned.ConfigID, remainingConfigs.First().ConfigID);
-        Console.WriteLine($"Remaining configuration: {remainingConfigs.First().Name} ({remainingConfigs.First().ConfigID})");
+        Console.WriteLine($"\nRemaining configuration: {remainingConfigs.First().Name} ({remainingConfigs.First().ConfigID})");
 
-        Console.WriteLine("Configuration_CRUD_FullIntegration_Works test completed successfully.");
+        Console.WriteLine("\nConfiguration_CRUD_FullIntegration_Works test completed successfully.");
     }
 }
