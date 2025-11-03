@@ -12,11 +12,11 @@ namespace JetInteriorApp.Services.Configuration
     /// </summary>
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
-        private readonly IJsonConfigurationRepository _repository;
+        private readonly JsonConfigurationRepository _repository;
         private readonly ConcurrentDictionary<Guid, JetConfiguration> _inMemoryConfigs;
         private readonly Guid _userId;
 
-        public ConfigurationManager(IJsonConfigurationRepository repository, Guid userId)
+        public ConfigurationManager(JsonConfigurationRepository repository, Guid userId)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _userId = userId;
