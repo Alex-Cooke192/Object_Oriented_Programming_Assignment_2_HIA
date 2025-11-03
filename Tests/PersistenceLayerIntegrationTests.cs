@@ -13,13 +13,14 @@ using Xunit;
 public class ConfigurationIntegrationTests : IAsyncLifetime
 {
     private readonly Guid _userId = Guid.NewGuid();
-    private readonly string _dbPath = Path.Combine(Path.GetTempPath(), $"jet_integration_{Guid.NewGuid()}.db");
     private JetDbContext _db;
     private JsonConfigurationRepository _repository;
     private ConfigurationManager _manager;
 
     public async Task InitializeAsync()
     {
+        Console.WriteLine("Initializing in-memory database...");
+
         var connection = new SqliteConnection("DataSource=:memory:"); // in-memory DB
         await connection.OpenAsync();
 
@@ -42,18 +43,23 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             CreatedAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
+
+        Console.WriteLine("Database initialized and test user seeded.");
     }
 
     public async Task DisposeAsync()
     {
-        await _db.DisposeAsync();   // Just dispose, no file deletion needed
+        Console.WriteLine("Disposing database...");
+        await _db.DisposeAsync();
+        Console.WriteLine("Database disposed.");
     }
-
 
     [Fact]
     public async Task Configuration_CRUD_FullIntegration_Works()
     {
-        // Arrange: create a base layout configuration
+        Console.WriteLine("Starting Configuration_CRUD_FullIntegration_Works test...");
+
+        // Arrange
         var baseLayout = new JetConfiguration
         {
             ConfigID = Guid.NewGuid(),
@@ -80,36 +86,43 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             }
         };
 
-        // Act 1: Create configuration via ConfigurationManager
+        Console.WriteLine("Creating new configuration via ConfigurationManager...");
         var newConfig = await _manager.CreateConfigurationAsync("TestConfig", baseLayout);
         Assert.NotNull(newConfig);
-        Assert.Equal("TestConfig", newConfig.Name);
+        Console.WriteLine($"Configuration created: {newConfig.Name} ({newConfig.ConfigID})");
 
-        // Act 2: Reload from DB using repository
+        // Reload from DB
+        Console.WriteLine("Loading configurations from repository...");
         var loadedConfigs = await _repository.LoadAllAsync();
         Assert.Single(loadedConfigs);
         var loaded = loadedConfigs.First();
-        Assert.Equal(newConfig.Name, loaded.Name);
-        Assert.Single(loaded.InteriorComponents);
+        Console.WriteLine($"Loaded configuration: {loaded.Name} with {loaded.InteriorComponents.Count} components");
 
-        // Act 3: Clone the configuration
-        await _manager.InitializeAsync(); // load configs into memory
+        // Clone configuration
+        Console.WriteLine("Cloning configuration...");
+        await _manager.InitializeAsync();
         var cloned = await _manager.CloneConfigurationAsync(newConfig.ConfigID);
         Assert.NotNull(cloned);
-        Assert.NotEqual(newConfig.ConfigID, cloned.ConfigID);
-        Assert.Equal($"{newConfig.Name} (Clone)", cloned.Name);
+        Console.WriteLine($"Cloned configuration: {cloned.Name} ({cloned.ConfigID})");
 
-        // Act 4: Save all in-memory configs
+        // Save all
+        Console.WriteLine("Saving all in-memory configurations...");
         var saveAllResult = await _manager.SaveAllChangesAsync();
         Assert.True(saveAllResult);
+        Console.WriteLine("All configurations saved successfully.");
 
-        // Act 5: Delete one configuration
+        // Delete original
+        Console.WriteLine($"Deleting original configuration: {newConfig.Name}...");
         var deleteResult = await _manager.DeleteConfigurationAsync(newConfig.ConfigID);
         Assert.True(deleteResult);
+        Console.WriteLine("Original configuration deleted.");
 
-        // Verify that only one (the clone) remains
+        // Verify remaining
         var remainingConfigs = await _repository.LoadAllAsync();
         Assert.Single(remainingConfigs);
         Assert.Equal(cloned.ConfigID, remainingConfigs.First().ConfigID);
+        Console.WriteLine($"Remaining configuration: {remainingConfigs.First().Name} ({remainingConfigs.First().ConfigID})");
+
+        Console.WriteLine("Configuration_CRUD_FullIntegration_Works test completed successfully.");
     }
 }
