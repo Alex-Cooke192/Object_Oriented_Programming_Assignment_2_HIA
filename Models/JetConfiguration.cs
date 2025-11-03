@@ -14,7 +14,7 @@ namespace JetInteriorApp.Models
         public string? Name { get; set; }
         public string? CabinDimensions { get; set; }
         public int SeatingCapacity { get; set; }
-        public int Version { get; set; }
+        public int? Version { get; set; }
 
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
