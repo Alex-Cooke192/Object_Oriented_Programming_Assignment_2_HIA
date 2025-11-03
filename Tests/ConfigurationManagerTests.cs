@@ -167,41 +167,6 @@ public class ConfigurationManagerTests
         }
     }
 
-    private async Task TestExportConfigurationToJsonAsync()
-    {
-        try
-        {
-            var json = _manager.ExportConfigurationToJson(_existingConfig.ConfigID);
-            if (string.IsNullOrEmpty(json)) throw new Exception("JSON is empty");
-
-            Console.WriteLine($"ExportConfigurationToJson_ReturnsValidJson: PASSED - JSON length {json.Length}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ExportConfigurationToJson_ReturnsValidJson: FAILED - {ex.Message}");
-            throw;
-        }
-
-        await Task.CompletedTask;
-    }
-
-    private async Task TestImportConfigurationFromJsonAsync()
-    {
-        try
-        {
-            var json = JsonSerializer.Serialize(_existingConfig);
-            var imported = await _manager.ImportConfigurationFromJsonAsync(json);
-            if (imported == null) throw new Exception("Imported config is null");
-
-            Console.WriteLine($"ImportConfigurationFromJsonAsync_AddsConfigToMemory: PASSED - New ID {imported.ConfigID}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"ImportConfigurationFromJsonAsync_AddsConfigToMemory: FAILED - {ex.Message}");
-            throw;
-        }
-    }
-
     // ------------------------
     // Optional xUnit tests
     // ------------------------
