@@ -12,7 +12,7 @@ public class JsonConfigurationRepositoryTests
     private JetDbContext GetInMemoryDbContext()
     {
         var options = new DbContextOptionsBuilder<JetDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // new isolated DB each run
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // isolated per test
             .Options;
         return new JetDbContext(options);
     }
@@ -20,20 +20,34 @@ public class JsonConfigurationRepositoryTests
     [Fact]
     public async Task RunTestsAsync()
     {
-        Console.WriteLine("\nRunning JsonConfigurationRepository tests");
+        Console.WriteLine("\n===== Running JsonConfigurationRepository Tests =====");
 
-        await SaveConfigAsync_Should_Add_New_Config();
-        await SaveConfigAsync_Should_Update_Existing_Config();
-        await LoadAllAsync_Should_Return_User_Configs();
-        await SaveAllAsync_Should_Remove_Deleted_Configs();
+        await RunTestAsync(nameof(SaveConfigAsync_Should_Add_New_Config), SaveConfigAsync_Should_Add_New_Config);
+        await RunTestAsync(nameof(SaveConfigAsync_Should_Update_Existing_Config), SaveConfigAsync_Should_Update_Existing_Config);
+        await RunTestAsync(nameof(LoadAllAsync_Should_Return_User_Configs), LoadAllAsync_Should_Return_User_Configs);
+        await RunTestAsync(nameof(SaveAllAsync_Should_Remove_Deleted_Configs), SaveAllAsync_Should_Remove_Deleted_Configs);
 
-        Console.WriteLine("\nJsonConfigurationRepository: All tests executed successfully.");
+        Console.WriteLine("\n===== All Tests Executed =====");
+    }
+
+    private async Task RunTestAsync(string testName, Func<Task> testFunc)
+    {
+        Console.WriteLine($"\n--- Running {testName} ---");
+        try
+        {
+            await testFunc();
+            Console.WriteLine($"[{testName}] PASSED");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[{testName}] FAILED");
+            Console.WriteLine($"Error: {ex.Message}");
+        }
     }
 
     [Fact]
     public async Task SaveConfigAsync_Should_Add_New_Config()
     {
-        // Arrange
         using var db = GetInMemoryDbContext();
         var userId = Guid.NewGuid();
         var repo = new JsonConfigurationRepository(db, userId);
@@ -58,17 +72,14 @@ public class JsonConfigurationRepositoryTests
                     Type = "Seat",
                     Tier = "Business",
                     Material = "Leather",
-                    Position = "{\"row\":1,\"col\":1}", // ✅ Added
-                    CreatedAt = DateTime.UtcNow,       // ✅ Added
+                    Position = "{\"row\":1,\"col\":1}",
+                    CreatedAt = DateTime.UtcNow,
                     PropertiesJson = "{\"recline\": true}"
                 }
             }
         };
 
-        // Act
         var result = await repo.SaveConfigAsync(newConfig);
-
-        // Assert
         Assert.True(result);
 
         var saved = await db.JetConfigurations
@@ -78,6 +89,8 @@ public class JsonConfigurationRepositoryTests
         Assert.NotNull(saved);
         Assert.Equal(newConfig.Name, saved.Name);
         Assert.Single(saved.InteriorComponents);
+
+        Console.WriteLine($"Config added: {saved.Name}, Components: {saved.InteriorComponents.Count}");
     }
 
     [Fact]
@@ -87,7 +100,6 @@ public class JsonConfigurationRepositoryTests
         var userId = Guid.NewGuid();
         var repo = new JsonConfigurationRepository(db, userId);
 
-        // Seed existing config
         var configId = Guid.NewGuid();
         var existingDb = new JetConfigurationDB
         {
@@ -104,7 +116,6 @@ public class JsonConfigurationRepositoryTests
         db.JetConfigurations.Add(existingDb);
         await db.SaveChangesAsync();
 
-        // Modify and update
         var updatedConfig = new JetConfiguration
         {
             ConfigID = configId,
@@ -119,13 +130,13 @@ public class JsonConfigurationRepositoryTests
         };
 
         var result = await repo.SaveConfigAsync(updatedConfig);
-
-        // Assert
         Assert.True(result);
 
         var retrieved = await db.JetConfigurations.FirstAsync();
         Assert.Equal("Updated Name", retrieved.Name);
         Assert.Equal(10, retrieved.SeatingCapacity);
+
+        Console.WriteLine($"Config updated successfully: {retrieved.Name}, Seats: {retrieved.SeatingCapacity}");
     }
 
     [Fact]
@@ -135,7 +146,6 @@ public class JsonConfigurationRepositoryTests
         var userId = Guid.NewGuid();
         var otherUserId = Guid.NewGuid();
 
-        // Seed two configs for different users
         db.JetConfigurations.AddRange(
             new JetConfigurationDB
             {
@@ -156,22 +166,22 @@ public class JsonConfigurationRepositoryTests
                 Name = "Other User Jet",
                 CabinDimensions = "1.5x4x8",
                 SeatingCapacity = 6,
-                Version = 1, // ✅ Added to match model
+                Version = 1,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
-                InteriorComponents = new List<InteriorComponentDB>() // ✅ Added to prevent null ref
+                InteriorComponents = new List<InteriorComponentDB>()
             }
         );
         await db.SaveChangesAsync();
 
         var repo = new JsonConfigurationRepository(db, userId);
-
-        // Act
         var configs = await repo.LoadAllAsync();
 
-        // Assert
         Assert.Single(configs);
         Assert.Equal("Jet 1", configs[0].Name);
+
+        Console.WriteLine($"Loaded {configs.Count} config(s) for user {userId}.");
+        Console.WriteLine($"Config name: {configs[0].Name}");
     }
 
     [Fact]
@@ -181,15 +191,14 @@ public class JsonConfigurationRepositoryTests
         var userId = Guid.NewGuid();
         var repo = new JsonConfigurationRepository(db, userId);
 
-        // Seed two configs
         var config1 = new JetConfigurationDB
         {
             ConfigID = Guid.NewGuid(),
             UserID = userId,
             Name = "Config 1",
-            CabinDimensions = "5x3x2.5m", // ✅ Added
-            SeatingCapacity = 8,          // ✅ Added
-            Version = 1,                  // ✅ Added
+            CabinDimensions = "5x3x2.5m",
+            SeatingCapacity = 8,
+            Version = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponentDB>()
@@ -199,9 +208,9 @@ public class JsonConfigurationRepositoryTests
             ConfigID = Guid.NewGuid(),
             UserID = userId,
             Name = "Config 2",
-            CabinDimensions = "6x4x3m",   // ✅ Added
-            SeatingCapacity = 10,         // ✅ Added
-            Version = 1,                  // ✅ Added
+            CabinDimensions = "6x4x3m",
+            SeatingCapacity = 10,
+            Version = 1,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponentDB>()
@@ -209,7 +218,6 @@ public class JsonConfigurationRepositoryTests
         db.JetConfigurations.AddRange(config1, config2);
         await db.SaveChangesAsync();
 
-        // Act — only keep one in memory
         var updatedList = new List<JetConfiguration>
         {
             new JetConfiguration
@@ -219,7 +227,7 @@ public class JsonConfigurationRepositoryTests
                 Name = "Config 1",
                 CabinDimensions = "4x4x4m",
                 SeatingCapacity = 8,
-                Version = 1, // ✅ Added
+                Version = 1,
                 CreatedAt = config1.CreatedAt,
                 UpdatedAt = DateTime.UtcNow,
                 InteriorComponents = new List<InteriorComponent>()
@@ -228,9 +236,11 @@ public class JsonConfigurationRepositoryTests
 
         await repo.SaveAllAsync(updatedList);
 
-        // Assert
         var remaining = await db.JetConfigurations.ToListAsync();
         Assert.Single(remaining);
         Assert.Equal("Config 1", remaining[0].Name);
+
+        Console.WriteLine($"Remaining config count: {remaining.Count}");
+        Console.WriteLine($"Remaining config: {remaining[0].Name}");
     }
 }
