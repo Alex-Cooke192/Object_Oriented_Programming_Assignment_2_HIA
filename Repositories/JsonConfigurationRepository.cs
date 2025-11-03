@@ -60,53 +60,63 @@ public class JsonConfigurationRepository : IConfigurationRepository
     // Matches interface exactly
     public async Task<bool> SaveConfigAsync(JetConfiguration config)
     {
-        if (config == null) return false;
-
-        // Convert to DB entity
-        var configDb = new JetConfigurationDB
+        try
         {
-            ConfigID = config.ConfigID,
-            UserID = _currentUserId,
-            Name = config.Name,
-            SeatingCapacity = config.SeatingCapacity,
-            CabinDimensions = config.CabinDimensions, 
-            CreatedAt = config.CreatedAt,
-            UpdatedAt = DateTime.UtcNow,
-            InteriorComponents = config.InteriorComponents.Select(c => new InteriorComponentDB
+
+
+            if (config == null) return false;
+
+            // Convert to DB entity
+            var configDb = new JetConfigurationDB
             {
-                ComponentID = c.ComponentID,
                 ConfigID = config.ConfigID,
-                Name = c.Name,
-                Type = c.Type,
-                Tier = c.Tier,
-                Material = c.Material,
-                Position = c.Position, 
-                CreatedAt = c.CreatedAt, 
-                PropertiesJson = c.PropertiesJson
-            }).ToList()
-        };
-        // Try find if this config exists currently in the database
-        var existing = await _db.JetConfigurations
-            .Include(c => c.InteriorComponents)
-            .FirstOrDefaultAsync(c => c.ConfigID == configDb.ConfigID && c.UserID == _currentUserId);
-        // If the configuration already exists, update relevant fields
-        if (existing != null)
-        {
-            _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
+                UserID = _currentUserId,
+                Name = config.Name,
+                SeatingCapacity = config.SeatingCapacity,
+                CabinDimensions = config.CabinDimensions,
+                CreatedAt = config.CreatedAt,
+                UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = config.InteriorComponents.Select(c => new InteriorComponentDB
+                {
+                    ComponentID = c.ComponentID,
+                    ConfigID = config.ConfigID,
+                    Name = c.Name,
+                    Type = c.Type,
+                    Tier = c.Tier,
+                    Material = c.Material,
+                    Position = c.Position,
+                    CreatedAt = c.CreatedAt,
+                    PropertiesJson = c.PropertiesJson
+                }).ToList()
+            };
+            // Try find if this config exists currently in the database
+            var existing = await _db.JetConfigurations
+                .Include(c => c.InteriorComponents)
+                .FirstOrDefaultAsync(c => c.ConfigID == configDb.ConfigID && c.UserID == _currentUserId);
+            // If the configuration already exists, update relevant fields
+            if (existing != null)
+            {
+                _db.InteriorComponents.RemoveRange(existing.InteriorComponents);
 
-            existing.InteriorComponents = configDb.InteriorComponents;
-            existing.Name = configDb.Name;
-            existing.SeatingCapacity = configDb.SeatingCapacity;
-            existing.UpdatedAt = DateTime.UtcNow;
+                existing.InteriorComponents = configDb.InteriorComponents;
+                existing.Name = configDb.Name;
+                existing.SeatingCapacity = configDb.SeatingCapacity;
+                existing.UpdatedAt = DateTime.UtcNow;
+            }
+            else
+            {
+                // No existing config was found, so create new one
+                await _db.JetConfigurations.AddAsync(configDb);
+            }
+            // Commit changes
+            await _db.SaveChangesAsync();
+            return true;
         }
-        else
+        catch (Exception ex)
         {
-            // No existing config was found, so create new one
-            await _db.JetConfigurations.AddAsync(configDb);
+            Console.WriteLine($"SaveConfigAsync FAILED: {ex.InnerException?.Message ?? ex.Message}");
+            throw;
         }
-        // Commit changes
-        await _db.SaveChangesAsync();
-        return true;
     }
 
 
