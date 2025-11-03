@@ -89,9 +89,11 @@ namespace JetInteriorApp.Services.Configuration
         /// </summary>
         public async Task<JetConfiguration?> CloneConfigurationAsync(Guid configId)
         {
+            // 1. Ensure the original configuration exists in memory
             if (!_inMemoryConfigs.TryGetValue(configId, out var original))
                 return null;
 
+            // 2. Create a new JetConfiguration object
             var clone = new JetConfiguration
             {
                 ConfigID = Guid.NewGuid(),
@@ -101,11 +103,15 @@ namespace JetInteriorApp.Services.Configuration
                 SeatingCapacity = original.SeatingCapacity,
                 Version = (original.Version ?? 0) + 1,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                InteriorComponents = original.InteriorComponents?.Select(c => new InteriorComponent
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            // 3. Clone each interior component with a new ComponentID and correct ConfigID reference
+            clone.InteriorComponents = original.InteriorComponents?
+                .Select(c => new InteriorComponent
                 {
                     ComponentID = Guid.NewGuid(),
-                    ConfigID = Guid.Empty,
+                    ConfigID = clone.ConfigID,
                     Name = c.Name,
                     Type = c.Type,
                     Tier = c.Tier,
@@ -113,18 +119,23 @@ namespace JetInteriorApp.Services.Configuration
                     Position = c.Position,
                     CreatedAt = DateTime.UtcNow,
                     PropertiesJson = c.PropertiesJson
-                }).ToList() ?? new List<InteriorComponent>()
-            };
+                })
+                .ToList() ?? new List<InteriorComponent>();
 
+            // 4. Save the cloned configuration to the repository
             var success = await _repository.SaveConfigAsync(clone);
+
+            // 5. If successful, cache in memory and return the clone
             if (success)
             {
                 _inMemoryConfigs[clone.ConfigID] = clone;
                 return clone;
             }
 
+            // 6. Return null if persistence failed
             return null;
         }
+
 
         /// <summary>
         /// Deletes a configuration from memory and the repository.
