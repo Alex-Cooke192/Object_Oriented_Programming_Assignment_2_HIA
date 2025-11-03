@@ -26,7 +26,7 @@ namespace JetInteriorApp.Services.Configuration
         /// <summary>
         /// Loads all configurations from the repository into memory.
         /// </summary>
-        public async Task InitializeAsync()
+        public async Task GetConfigurationsForUserAsync()
         {
             var configs = await _repository.LoadAllAsync();
             _inMemoryConfigs.Clear();
