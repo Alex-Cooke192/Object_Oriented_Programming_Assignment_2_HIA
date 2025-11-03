@@ -11,7 +11,6 @@ namespace JetInteriorApp.Tests
         public async Task RunAllAsync()
         {
             string dbPath = "Data/jetconfigs.db";
-
             Console.WriteLine("Starting Database Integrity Tests...");
 
             // 1. Check if database file exists
@@ -24,7 +23,7 @@ namespace JetInteriorApp.Tests
 
             // 2. Configure EF Core with SQLite
             var options = new DbContextOptionsBuilder<JetDbContext>()
-                .UseSqlite($"Data Source={dbPath}") // fixed interpolation
+                .UseSqlite($"Data Source={dbPath}")
                 .Options;
 
             // 3. Create context
@@ -34,15 +33,32 @@ namespace JetInteriorApp.Tests
             var tester = new DatabaseTester(db);
             await tester.RunTestsAsync();
 
-            // 5. Run unit test on JsonConfigurationRepository
-            var JsonRepoUnitTester = new JsonConfigurationRepositoryTests();
-            await JsonRepoUnitTester.RunTestsAsync(); 
+            // 5. Run unit tests on JsonConfigurationRepository
+            var jsonRepoUnitTester = new JsonConfigurationRepositoryTests();
+            await jsonRepoUnitTester.RunTestsAsync(); 
 
-            // 6. Run unit test on ConfigurationManager
+            // 6. Run unit tests on ConfigurationManager
             var configurationManagerTests = new ConfigurationManagerTests();
             await configurationManagerTests.RunTestsAsync();
 
-            Console.WriteLine("\nAll tests completed successfully.");
+            // 7. Run persistence layer integration tests
+            Console.WriteLine("\nRunning persistence layer integration tests...");
+            try
+            {
+                var integrationTests = new ConfigurationIntegrationTests();
+                await integrationTests.InitializeAsync(); // Set up in-memory DB & dependencies
+                await integrationTests.Configuration_CRUD_FullIntegration_Works();
+                await integrationTests.DisposeAsync();
+
+                Console.WriteLine("Persistence layer integration tests completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Integration tests failed: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+            }
+
+            Console.WriteLine("\nAll tests completed.");
         }
     }
 }
