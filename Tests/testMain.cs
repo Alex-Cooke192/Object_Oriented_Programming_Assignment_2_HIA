@@ -6,9 +6,9 @@ using JetInteriorApp.Data;
 
 namespace JetInteriorApp.Tests
 {
-    public class MainTest
+    public class TestMain
     {
-        public static async Task RunAllAsync()
+        public async Task RunAllAsync()
         {
             string dbPath = "Data/jetconfigs.db";
 
@@ -39,18 +39,8 @@ namespace JetInteriorApp.Tests
             await JsonRepoUnitTester.RunTestsAsync(); 
 
             // 6. Run unit test on ConfigurationManager
-
-
-
-            /*
             var configurationManagerTests = new ConfigurationManagerTests();
-
-            configurationManagerTests.GetConfiguration_ReturnsCorrectConfig();
-            configurationManagerTests.CreateConfiguration_AddsNewConfig();
-            configurationManagerTests.CloneConfiguration_CreatesCopyWithModifiedName();
-            configurationManagerTests.DeleteConfiguration_RemovesConfig();
-            configurationManagerTests.SaveAllChanges_ReturnsTrue();
-            */
+            await configurationManagerTests.RunTestsAsync();
 
             Console.WriteLine("\nAll tests completed successfully.");
         }
