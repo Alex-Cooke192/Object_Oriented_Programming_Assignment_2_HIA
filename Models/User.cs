@@ -8,7 +8,7 @@ namespace JetInteriorApp.Models
         // Basic user fields
         public int UserID { get; set; } // You can set manually for testing
         public string Username { get; set; }
-        public string Email { get; set; }
+        public string? Email { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Password storage (hashed)

@@ -11,9 +11,7 @@ public class UserDB
 
     [Required]
     public string PasswordHash { get; set; } = string.Empty;
-
-    [Required]
-    public string Email { get; set; }
+    public string? Email { get; set; }
     public DateTime CreatedAt { get; set; }
 
     // Navigation property

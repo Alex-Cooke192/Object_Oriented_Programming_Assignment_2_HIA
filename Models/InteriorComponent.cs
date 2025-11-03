@@ -12,15 +12,15 @@ namespace JetInteriorApp.Models
         [ForeignKey("JetConfiguration")]
         public Guid ConfigID { get; set; }
 
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string Tier { get; set; }
-        public string Material { get; set; }
+        public string? Name { get; set; }
+        public string? Type { get; set; }
+        public string? Tier { get; set; }
+        public string? Material { get; set; }
         public string Position { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // Flexible JSON for type-specific properties
-        public string PropertiesJson { get; set; }
+        public string? PropertiesJson { get; set; }
 
         [NotMapped]
         public ComponentPropertiesBase Properties
