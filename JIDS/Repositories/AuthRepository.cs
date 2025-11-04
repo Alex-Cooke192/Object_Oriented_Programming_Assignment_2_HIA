@@ -1,12 +1,13 @@
 ﻿using JetInteriorApp.Data;
 using JetInteriorApp.Models;
 using JetInteriorApp.Services;
+using JetInteriorApp.Interfaces; 
 using Microsoft.EntityFrameworkCore;
 using System;
 
 namespace JetInteriorApp.Repositories
 {
-    internal class AuthRepository
+    internal class AuthRepository : IAuthRepository
     {
         private readonly JetDbContext _context;
 
