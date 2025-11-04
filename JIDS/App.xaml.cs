@@ -16,31 +16,31 @@ namespace JetInteriorApp
         {
             base.OnStartup(e);
 
-            // Resolve database path
+            // Set up the database path
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string dbPath = Path.Combine(baseDirectory, "Data", "jetconfigs.db");
 
             // Ensure Data folder exists
             Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
 
-            // Build DbContext options
+            // Set up DbContext options
             var options = new DbContextOptionsBuilder<JetDbContext>()
                 .UseSqlite($"Data Source={dbPath}")
                 .Options;
 
-            // Create context and ensure database
+            // Create the DbContext and ensure database is created
             var dbContext = new JetDbContext(options);
-            dbContext.Database.EnsureCreated();
+            dbContext.Database.EnsureCreated();  // Creates the database if it doesn't exist
 
-            // Inject repository into ViewModel
-            IAuthRepository authRepository = new AuthRepository(dbContext);
-            var loginVM = new LoginViewModel(authRepository);
+            // Create the AuthRepository and LoginViewModel, passing the dbContext
+            var authRepository = new AuthRepository(dbContext);
+            var loginViewModel = new LoginViewModel(authRepository);
 
-            // Launch LoginView
-            var loginView = new LoginView
-            {
-                DataContext = loginVM
-            };
+            // Create the LoginView
+            var loginView = new LoginView();  // Parameterless constructor
+            loginView.DataContext = loginViewModel;  // Inject ViewModel into the view
+
+            // Show the LoginView
             loginView.Show();
         }
     }
