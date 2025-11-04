@@ -1,11 +1,11 @@
-﻿using JetInteriorApp.Interfaces;
-using JetInteriorApp.Models;
+﻿using JetInteriorApp.Helpers;
+using JetInteriorApp.Interfaces;
 using JetInteriorApp.Repositories;
-using JetInteriorApp.Services;
-using JetInteriorApp.Helpers; 
+using JetInteriorApp.Views;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace JetInteriorApp.ViewModels
@@ -55,11 +55,40 @@ namespace JetInteriorApp.ViewModels
         private async Task LoginAsync()
         {
             bool success = await _authRepository.ValidateUserAsync(Username, Password);
-            StatusMessage = success ? $"Welcome, {Username}!" : "Invalid username or password.";
+
+            if (success)
+            {
+                StatusMessage = $"Welcome, {Username}!";
+
+                // Open the main window
+                var mainWindow = new MainWindow();
+                mainWindow.Show();
+
+                // Close the login window
+                foreach (Window window in Application.Current.Windows)
+                {
+                    if (window is LoginView)
+                    {
+                        window.Close();
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                StatusMessage = "Invalid username or password.";
+            }
         }
+
 
         private async Task RegisterAsync()
         {
+            if (string.IsNullOrEmpty(Email))
+            {
+                StatusMessage = "Email is required for registration.";
+                return;
+            }
+
             bool success = await _authRepository.RegisterUserAsync(Username, Email, Password);
             StatusMessage = success ? $"User {Username} registered successfully." : "Username already exists.";
         }
