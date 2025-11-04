@@ -1,7 +1,6 @@
+using JetInteriorApp.Services;
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using BCrypt.Net; // Need to install BCrypt.Net-Next NuGet package for hashing
 
 namespace JetInteriorApp.Models
 {
@@ -11,28 +10,39 @@ namespace JetInteriorApp.Models
         public string Username { get; private set; }
         public string PasswordHash { get; private set; }
         public string Email { get; private set; }
-        public DateTime CreatedAt { get; set; }
-        public ICollection<JetConfiguration> Configurations { get; set; }
+        public DateTime CreatedAt { get; private set; }
+        public ICollection<JetConfiguration> Configurations { get; private set; }
 
-        public User(string username, string email, string plainPassword)
+        // Private constructor to force use of factory methods
+        private User(Guid userID, string username, string email, string passwordHash, DateTime createdAt)
+        {
+            UserID = userID;
+            Username = username;
+            PasswordHash = passwordHash;
+            Email = email;
+            CreatedAt = createdAt;
+            Configurations = new List<JetConfiguration>();
+        }
+
+        // Factory method for creating a NEW user
+        public static User CreateNew(string username, string email, string plainPassword)
         {
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentException("Username cannot be empty.");
-
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email cannot be empty.");
-
             if (string.IsNullOrWhiteSpace(plainPassword))
                 throw new ArgumentException("Password cannot be empty.");
-            
-            UserID = Guid.NewGuid();
-            Username = username;
-            PasswordHash = plainPassword;
-            Email = email;
-            CreatedAt = DateTime.Now;
-            Configurations = new List<JetConfiguration>();
 
+            var hashedPassword = PasswordHasher.HashPassword(plainPassword);
+            return new User(Guid.NewGuid(), username, email, hashedPassword, DateTime.Now);
+        }
+
+        // Factory method for loading an EXISTING user (from DB)
+        public static User FromExisting(Guid userID, string username, string email, string passwordHash, DateTime createdAt)
+        {
+            return new User(userID, username, email, passwordHash, createdAt);
         }
     }
 }
-     
+
