@@ -1,13 +1,14 @@
-﻿using JetInteriorApp.Data;
+﻿using System;
+using System.Threading.Tasks;
+using JetInteriorApp.Data;
+using JetInteriorApp.Interfaces;
 using JetInteriorApp.Models;
 using JetInteriorApp.Services;
-using JetInteriorApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace JetInteriorApp.Repositories
 {
-    internal class AuthRepository : IAuthRepository
+    public class AuthRepository : IAuthRepository
     {
         private readonly JetDbContext _context;
 
@@ -16,68 +17,37 @@ namespace JetInteriorApp.Repositories
             _context = context;
         }
 
-        /// <summary>
-        /// Retrieves a user from the database by username.
-        /// Uses FromExisting to preserve UserID and hashed password.
-        /// </summary>
-        public async Task<User?> GetUserByUsernameAsync(string username)
+        public async Task<bool> ValidateUserAsync(string username, string password)
         {
-            var userDb = await _context.Users
-                .FirstOrDefaultAsync(u => u.Username == username);
+            var userDb = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
             if (userDb == null)
-                return null;
-
-            return User.FromExisting(
-                userDb.UserID,
-                userDb.Username,
-                userDb.Email,
-                userDb.PasswordHash,
-                userDb.CreatedAt
-            );
-        }
-
-        /// <summary>
-        /// Validates user login by comparing plaintext password with stored hash.
-        /// </summary>
-        public async Task<bool> ValidateUserAsync(string username, string plainPassword)
-        {
-            var user = await GetUserByUsernameAsync(username);
-            if (user == null)
                 return false;
 
-            return PasswordHasher.VerifyPassword(plainPassword, user.PasswordHash);
+            // Secure BCrypt verification
+            return PasswordHasher.VerifyPassword(password, userDb.PasswordHash);
         }
 
-        /// <summary>
-        /// Registers a new user in the database.
-        /// Uses User.CreateNew to generate ID, hash password, and set CreatedAt.
-        /// </summary>
-        public async Task<bool> RegisterUserAsync(string username, string email, string plainPassword)
+        public async Task<bool> RegisterUserAsync(string username, string email, string password)
         {
-            // Check if username already exists
-            if (await _context.Users.AnyAsync(u => u.Username == username))
-                return false;
+            var existingUserDb = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-            // Create domain user using factory method
-            var newUser = User.CreateNew(username, email, plainPassword);
+            if (existingUserDb != null)
+                return false; // Username already exists
 
-            // Map to persistence model
-            var newUserDb = new UserDB
+            // Hash password before storing
+            var hashedPassword = PasswordHasher.HashPassword(password);
+
+            var userDb = new UserDB
             {
-                UserID = newUser.UserID,
-                Username = newUser.Username,
-                Email = newUser.Email,
-                PasswordHash = newUser.PasswordHash,
-                CreatedAt = newUser.CreatedAt
+                UserID = Guid.NewGuid(),
+                Username = username,
+                Email = email,
+                PasswordHash = hashedPassword
             };
 
-            // Add to database and save
-            _context.Users.Add(newUserDb);
+            _context.Users.Add(userDb);
             await _context.SaveChangesAsync();
-
-            Console.WriteLine($"New user saved with username: {username}");
-
             return true;
         }
     }
