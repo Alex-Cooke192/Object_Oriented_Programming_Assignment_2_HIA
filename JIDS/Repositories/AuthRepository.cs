@@ -1,7 +1,7 @@
 ﻿using JetInteriorApp.Data;
 using JetInteriorApp.Models;
 using JetInteriorApp.Services;
-using JetInteriorApp.Interfaces; 
+using JetInteriorApp.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
 
@@ -16,20 +16,30 @@ namespace JetInteriorApp.Repositories
             _context = context;
         }
 
+        /// <summary>
+        /// Retrieves a user from the database by username.
+        /// Uses FromExisting to preserve UserID and hashed password.
+        /// </summary>
         public async Task<User?> GetUserByUsernameAsync(string username)
         {
-            var DesiredUserDB = await _context.Users
+            var userDb = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == username);
 
-            if (DesiredUserDB == null)
+            if (userDb == null)
                 return null;
 
-            return new User(
-                DesiredUserDB.Username, 
-                DesiredUserDB.Email, 
-                DesiredUserDB.PasswordHash);
+            return User.FromExisting(
+                userDb.UserID,
+                userDb.Username,
+                userDb.Email,
+                userDb.PasswordHash,
+                userDb.CreatedAt
+            );
         }
 
+        /// <summary>
+        /// Validates user login by comparing plaintext password with stored hash.
+        /// </summary>
         public async Task<bool> ValidateUserAsync(string username, string plainPassword)
         {
             var user = await GetUserByUsernameAsync(username);
@@ -39,29 +49,34 @@ namespace JetInteriorApp.Repositories
             return PasswordHasher.VerifyPassword(plainPassword, user.PasswordHash);
         }
 
+        /// <summary>
+        /// Registers a new user in the database.
+        /// Uses User.CreateNew to generate ID, hash password, and set CreatedAt.
+        /// </summary>
         public async Task<bool> RegisterUserAsync(string username, string email, string plainPassword)
         {
-            // Check for existing username
+            // Check if username already exists
             if (await _context.Users.AnyAsync(u => u.Username == username))
                 return false;
 
-            // Hash password
-            var hashedPassword = PasswordHasher.HashPassword(plainPassword);
+            // Create domain user using factory method
+            var newUser = User.CreateNew(username, email, plainPassword);
 
-            // Create persistence model for Db 
+            // Map to persistence model
             var newUserDb = new UserDB
             {
-                UserID = Guid.NewGuid(),
-                Username = username,
-                Email = email,
-                PasswordHash = hashedPassword  // always store hashed password
+                UserID = newUser.UserID,
+                Username = newUser.Username,
+                Email = newUser.Email,
+                PasswordHash = newUser.PasswordHash,
+                CreatedAt = newUser.CreatedAt
             };
 
-            // Add to DB and save
+            // Add to database and save
             _context.Users.Add(newUserDb);
             await _context.SaveChangesAsync();
 
-            Console.WriteLine($"New user saved with username: {username}"); 
+            Console.WriteLine($"New user saved with username: {username}");
 
             return true;
         }
