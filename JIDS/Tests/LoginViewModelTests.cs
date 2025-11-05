@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Windows.Input; 
 using System.Windows;
 using JetInteriorApp.Interfaces;
 using JetInteriorApp.ViewModels;
+using JetInteriorApp.Helpers; 
 using Moq;
 using Xunit;
 
@@ -39,7 +41,7 @@ public class LoginViewModelTests
         await TestRegister_Failure();
         await TestRegister_NoEmail();
 
-        Console.WriteLine("\n✅ All LoginViewModel tests completed.");
+        Console.WriteLine("\nAll LoginViewModel tests completed.");
     }
 
     // ----------------------------------------------------
@@ -188,12 +190,21 @@ public class LoginViewModelTests
     }
 
     // Utility: execute commands that are async
-    private async Task InvokeCommand(System.Windows.Input.ICommand command)
+    private async Task InvokeCommand(ICommand command)
     {
-        if (command.CanExecute(null))
+        if (!command.CanExecute(null))
+            return;
+
+        // If it's our RelayCommand with async support
+        if (command is RelayCommand relay && relay.ExecuteAsync != null)
         {
-            var task = command.Execute(null) as Task;
-            if (task != null) await task;
+            var task = relay.ExecuteAsync(null);
+            if (task != null)
+                await task;
+        }
+        else
+        {
+            command.Execute(null); // sync
         }
     }
 

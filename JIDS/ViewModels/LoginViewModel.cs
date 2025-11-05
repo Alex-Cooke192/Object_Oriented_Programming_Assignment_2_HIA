@@ -17,8 +17,8 @@ namespace JetInteriorApp.ViewModels
         public LoginViewModel(IAuthRepository authRepository)
         {
             _authRepository = authRepository;
-            LoginCommand = new RelayCommand(async _ => await LoginAsync());
-            RegisterCommand = new RelayCommand(async _ => await RegisterAsync());
+            LoginCommand = new RelayCommand(_ => LoginAsync());
+            RegisterCommand = new RelayCommand(_ => RegisterAsync());
         }
 
         private string _username = string.Empty;
