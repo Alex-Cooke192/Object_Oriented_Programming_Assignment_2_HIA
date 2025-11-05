@@ -35,7 +35,7 @@ namespace JetInteriorApp.Tests
 
             // 5. Run unit tests on JsonConfigurationRepository
             var jsonRepoUnitTester = new JsonConfigurationRepositoryTests();
-            await jsonRepoUnitTester.RunTestsAsync(); 
+            await jsonRepoUnitTester.RunTestsAsync();
 
             // 6. Run unit tests on ConfigurationManager
             var configurationManagerTests = new ConfigurationManagerTests();
@@ -58,7 +58,44 @@ namespace JetInteriorApp.Tests
                 Console.WriteLine(ex.StackTrace);
             }
 
-            Console.WriteLine("\nAll tests completed.");
+            
+            Console.WriteLine("\nRunning AuthRepository unit tests...");
+            try
+            {
+                var authRepoTests = new AuthRepositoryTests();
+                await authRepoTests.RunTestsAsync();
+                Console.WriteLine("AuthRepository unit tests completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AuthRepository tests FAILED: {ex.Message}");
+            }
+
+            Console.WriteLine("\nRunning LoginViewModel unit tests...");
+            try
+            {
+                var loginViewModelTests = new LoginViewModelTests();
+                await loginViewModelTests.RunTestsAsync();
+                Console.WriteLine("LoginViewModel unit tests completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"LoginViewModel tests FAILED: {ex.Message}");
+            }
+
+            Console.WriteLine("\nRunning RelayCommand unit tests...");
+            try
+            {
+                var relayCommandTests = new RelayCommandTests();
+                await relayCommandTests.RunTestsAsync();
+                Console.WriteLine("RelayCommand unit tests completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"RelayCommand tests FAILED: {ex.Message}");
+            }
+
+            Console.WriteLine("\n All tests completed.");
         }
     }
 }
