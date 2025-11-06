@@ -15,7 +15,6 @@
     <Folder Include="Repositories\" />
     <Folder Include="Tests\" />
     <Folder Include="Services\" />
-    <Folder Include="ViewModels\" />
     <Folder Include="Views\" />
   </ItemGroup>
 
