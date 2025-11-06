@@ -26,16 +26,17 @@ namespace JetInteriorApp.Services.Configuration
         /// <summary>
         /// Loads all configurations from the repository into memory.
         /// </summary>
-        public async Task InitializeAsync()
+        public async Task<List<JetConfiguration>> InitializeAsync()
         {
             var configs = await _repository.LoadAllAsync();
             _inMemoryConfigs.Clear();
 
             foreach (var config in configs)
-            {
                 _inMemoryConfigs[config.ConfigID] = config;
-            }
+
+            return configs;
         }
+
 
         /// <summary>
         /// Retrieves a configuration from memory by ID.
