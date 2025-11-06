@@ -5,10 +5,6 @@ using JetInteriorApp.Models;
 using JetInteriorApp.Data;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
-// This script is used to test database integrity 
-// Can data be written to/read from the database
-// It does NOT test the JsonConfigurationRepository script
-// - this is tackled by JsonConfigurationRepositoryTests.cs
 
 public class DatabaseTester
 {
@@ -19,72 +15,80 @@ public class DatabaseTester
         _db = db;
     }
 
+    // --------------------------------------------------
+    // Manual test runner
+    // --------------------------------------------------
     public async Task RunTestsAsync()
     {
-        Console.WriteLine("🔍 Testing database tables...\n");
+        Console.WriteLine("Running Database Integrity Tests...");
 
-        await TestTableAsync("Users", _db.Users.CountAsync());
-        await TestTableAsync("JetConfigurations", _db.JetConfigurations.CountAsync());
-        await TestTableAsync("InteriorComponents", _db.InteriorComponents.CountAsync());
-        await TestTableAsync("ComponentSettings", _db.ComponentSettings.CountAsync());
+        await TestTablesAsync();
+        await TestUserForeignKeysAsync();
+        await TestCreateUserAsync();
+        await TestCreateJetConfigurationAsync();
+        await TestTablesAsync();
 
-        await CheckJetConfigurationUserLinksAsync();
-
-        await CreateUserTestAsync();
-
-        await Can_Add_JetConfiguration_For_User();
-
-        await TestTableAsync("Users", _db.Users.CountAsync());
-        await TestTableAsync("JetConfigurations", _db.JetConfigurations.CountAsync());
-        await TestTableAsync("InteriorComponents", _db.InteriorComponents.CountAsync());
-        await TestTableAsync("ComponentSettings", _db.ComponentSettings.CountAsync());
-
-        Console.WriteLine("\nAll table checks complete.");
+        Console.WriteLine("All database tests completed.");
     }
 
-    private async Task TestTableAsync(string tableName, Task<int> countTask)
+    // --------------------------------------------------
+    // Test Logic
+    // --------------------------------------------------
+
+    private async Task TestTablesAsync()
+    {
+        await TestTableAsync("Users", _db.Users.CountAsync());
+        await TestTableAsync("JetConfigurations", _db.JetConfigurations.CountAsync());
+        await TestTableAsync("InteriorComponents", _db.InteriorComponents.CountAsync());
+        await TestTableAsync("ComponentSettings", _db.ComponentSettings.CountAsync());
+    }
+
+    private async Task TestTableAsync(string table, Task<int> task)
     {
         try
         {
-            int count = await countTask;
-            Console.WriteLine($"PASS: {tableName}: {count} row(s)");
+            int count = await task;
+            Console.WriteLine($"PASS: {table} - {count} row(s)");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"ERROR: {tableName}: Error - {ex.Message}");
+            Console.WriteLine($"FAIL: {table} - {ex.Message}");
+            throw;
         }
     }
 
-    private async Task CheckJetConfigurationUserLinksAsync()
-    {
-        Console.WriteLine("\nChecking JetConfigurations → Users foreign key integrity...");
-
-        var validUserIds = await _db.Users.Select(u => u.UserID).ToListAsync();
-        var configs = await _db.JetConfigurations.ToListAsync();
-
-        foreach (var config in configs)
-        {
-            if (!validUserIds.Contains(config.UserID))
-            {
-                Console.WriteLine($" JetConfiguration '{config.Name}' has invalid UserID: {config.UserID}");
-            }
-        }
-
-        Console.WriteLine("JetConfiguration user link check complete.");
-    }
-
-    public async Task CreateUserTestAsync()
+    private async Task TestUserForeignKeysAsync()
     {
         try
         {
-            // Create a new user using the factory method
+            var validUserIds = await _db.Users.Select(u => u.UserID).ToListAsync();
+            var configs = await _db.JetConfigurations.ToListAsync();
+
+            foreach (var config in configs)
+            {
+                if (!validUserIds.Contains(config.UserID))
+                    throw new Exception($"JetConfiguration '{config.Name}' has invalid UserID {config.UserID}");
+            }
+
+            Console.WriteLine("PASS: JetConfiguration to User foreign key integrity validated");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"FAIL: JetConfiguration foreign key validation - {ex.Message}");
+            throw;
+        }
+    }
+
+    private async Task TestCreateUserAsync()
+    {
+        try
+        {
             var newUser = User.CreateNew(
                 username: "testuser_" + Guid.NewGuid(),
                 email: "testuser@example.com",
                 plainPassword: "SecurePassword123!"
             );
 
-            // Map to persistence model (UserDB) for EF
             var newUserDB = new UserDB
             {
                 UserID = newUser.UserID,
@@ -97,83 +101,79 @@ public class DatabaseTester
             _db.Users.Add(newUserDB);
             await _db.SaveChangesAsync();
 
-            Console.WriteLine($"User created successfully with ID: {newUser.UserID}");
+            Console.WriteLine($"PASS: Created user '{newUser.Username}' ({newUser.UserID})");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating user: {ex.Message}");
+            Console.WriteLine($"FAIL: CreateUser - {ex.Message}");
+            throw;
         }
     }
 
-    public async Task Can_Add_JetConfiguration_For_User()
+    private async Task TestCreateJetConfigurationAsync()
     {
-        // Get an existing user or create a new one if none exist
-        var existingUser = await _db.Users.FirstOrDefaultAsync();
-
-        if (existingUser == null)
+        try
         {
-            var newUser = User.CreateNew(
-                username: "autogenerated_" + Guid.NewGuid(),
-                email: "autogen@example.com",
-                plainPassword: "Password123!"
-            );
+            var existingUser = await _db.Users.FirstOrDefaultAsync();
+            if (existingUser == null)
+                throw new Exception("No users exist to link JetConfiguration");
 
-            existingUser = new UserDB
+            var config = new JetConfiguration
             {
-                UserID = newUser.UserID,
-                Username = newUser.Username,
-                Email = newUser.Email,
-                PasswordHash = newUser.PasswordHash,
-                CreatedAt = newUser.CreatedAt
+                ConfigID = Guid.NewGuid(),
+                UserID = existingUser.UserID,
+                Name = "Business Jet A",
+                CabinDimensions = "10x3x2.5m",
+                SeatingCapacity = 8,
+                Version = 1,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
-            _db.Users.Add(existingUser);
+            var configDB = new JetConfigurationDB
+            {
+                ConfigID = config.ConfigID,
+                UserID = config.UserID,
+                Name = config.Name,
+                CabinDimensions = config.CabinDimensions,
+                SeatingCapacity = config.SeatingCapacity,
+                Version = config.Version ?? 0,
+                CreatedAt = config.CreatedAt,
+                UpdatedAt = config.UpdatedAt
+            };
+
+            _db.JetConfigurations.Add(configDB);
             await _db.SaveChangesAsync();
 
-            Console.WriteLine($"Created fallback user: {existingUser.Username}");
+            var retrieved = await _db.JetConfigurations
+                .Include(c => c.User)
+                .FirstOrDefaultAsync(c => c.Name == "Business Jet A");
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(existingUser.UserID, retrieved.UserID);
+
+            Console.WriteLine("PASS: JetConfiguration created and foreign key validated");
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine($"Using existing user: {existingUser.UserID}, {existingUser.Username}");
+            Console.WriteLine($"FAIL: Create JetConfiguration - {ex.Message}");
+            throw;
         }
-
-        // Create a JetConfiguration linked to the user
-        var config = new JetConfiguration
-        {
-            ConfigID = Guid.NewGuid(),
-            UserID = existingUser.UserID,
-            Name = "Business Jet A",
-            CabinDimensions = "10x3x2.5m",
-            SeatingCapacity = 8,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        // Map to persistence model
-        var configDB = new JetConfigurationDB
-        {
-            ConfigID = config.ConfigID,
-            UserID = config.UserID,
-            Name = config.Name,
-            CabinDimensions = config.CabinDimensions,
-            SeatingCapacity = config.SeatingCapacity,
-            Version = config.Version ?? 0,
-            CreatedAt = config.CreatedAt,
-            UpdatedAt = config.UpdatedAt
-        };
-
-        _db.JetConfigurations.Add(configDB);
-        await _db.SaveChangesAsync();
-
-        // Verify it was added
-        var retrieved = await _db.JetConfigurations
-            .Include(c => c.User)
-            .FirstOrDefaultAsync(c => c.Name == "Business Jet A");
-
-        Assert.NotNull(retrieved);
-        Assert.Equal(existingUser.UserID, retrieved.UserID);
-
-        Console.WriteLine("✅ JetConfiguration successfully created and verified!");
     }
+
+    // --------------------------------------------------
+    // xUnit Facts (for dotnet test)
+    // --------------------------------------------------
+
+    [Fact]
+    public async Task Tables_Exist_Fact() => await TestTablesAsync();
+
+    [Fact]
+    public async Task ForeignKeys_Valid_Fact() => await TestUserForeignKeysAsync();
+
+    [Fact]
+    public async Task CreateUser_Fact() => await TestCreateUserAsync();
+
+    [Fact]
+    public async Task CreateJetConfiguration_Fact() => await TestCreateJetConfigurationAsync();
 }

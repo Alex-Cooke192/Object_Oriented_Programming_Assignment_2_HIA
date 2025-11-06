@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using JetInteriorApp.Data;
@@ -17,11 +16,14 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
     private JsonConfigurationRepository _repository;
     private ConfigurationManager _manager;
 
+    // ----------------------------------------------------
+    // Test Initialization / Cleanup
+    // ----------------------------------------------------
     public async Task InitializeAsync()
     {
-        Console.WriteLine("Initializing in-memory database...");
+        Console.WriteLine("Initializing in-memory SQLite database...");
 
-        var connection = new SqliteConnection("DataSource=:memory:"); // in-memory DB
+        var connection = new SqliteConnection("DataSource=:memory:");
         await connection.OpenAsync();
 
         var options = new DbContextOptionsBuilder<JetDbContext>()
@@ -34,7 +36,7 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
         _repository = new JsonConfigurationRepository(_db, _userId);
         _manager = new ConfigurationManager(_repository, _userId);
 
-        // Seed user
+        // Seed a user
         _db.Users.Add(new UserDB
         {
             UserID = _userId,
@@ -42,23 +44,52 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             Email = "integration@test.com",
             CreatedAt = DateTime.UtcNow
         });
-        await _db.SaveChangesAsync();
 
-        Console.WriteLine("Database initialized and test user seeded.");
+        await _db.SaveChangesAsync();
+        Console.WriteLine("Database ready and user seeded.");
     }
 
     public async Task DisposeAsync()
     {
-        Console.WriteLine("Disposing database...");
+        Console.WriteLine("Disposing in-memory database...");
+
         await _db.DisposeAsync();
+
         Console.WriteLine("Database disposed.");
     }
 
-    [Fact]
-    public async Task Configuration_CRUD_FullIntegration_Works()
+    // ----------------------------------------------------
+    // Manual Test Runner
+    // ----------------------------------------------------
+    public async Task RunTestsAsync()
     {
-        Console.WriteLine("Starting Configuration_CRUD_FullIntegration_Works test...");
+        Console.WriteLine("Running ConfigurationIntegrationTests...");
 
+        await RunTest(nameof(Configuration_CRUD_FullIntegration_Works_Internal), Configuration_CRUD_FullIntegration_Works_Internal);
+
+        Console.WriteLine("ConfigurationIntegrationTests completed.");
+    }
+
+    private async Task RunTest(string name, Func<Task> func)
+    {
+        Console.WriteLine($"Running: {name}");
+        try
+        {
+            await func();
+            Console.WriteLine($"PASS: {name}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"FAIL: {name} - {ex.Message}");
+            throw;
+        }
+    }
+
+    // ----------------------------------------------------
+    // Internal Test Logic
+    // ----------------------------------------------------
+    private async Task Configuration_CRUD_FullIntegration_Works_Internal()
+    {
         // Arrange
         var baseLayout = new JetConfiguration
         {
@@ -86,43 +117,43 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
             }
         };
 
-        Console.WriteLine("\nCreating new configuration via ConfigurationManager...");
+        // Create new configuration
         var newConfig = await _manager.CreateConfigurationAsync("TestConfig", baseLayout);
-        Assert.NotNull(newConfig);
-        Console.WriteLine($"\nConfiguration created: {newConfig.Name} ({newConfig.ConfigID})");
+        if (newConfig == null) throw new Exception("CreateConfigurationAsync failed");
 
         // Reload from DB
-        Console.WriteLine("\nLoading configurations from repository...");
         var loadedConfigs = await _repository.LoadAllAsync();
-        Assert.Single(loadedConfigs);
+        if (loadedConfigs.Count != 1) throw new Exception("LoadAllAsync returned incorrect number of configs");
+
         var loaded = loadedConfigs.First();
-        Console.WriteLine($"\nLoaded configuration: {loaded.Name} with {loaded.InteriorComponents.Count} components");
+        if (loaded.InteriorComponents.Count != 1)
+            throw new Exception("Interior components not saved correctly");
 
         // Clone configuration
-        Console.WriteLine("\nCloning configuration...");
         await _manager.InitializeAsync();
         var cloned = await _manager.CloneConfigurationAsync(newConfig.ConfigID);
-        Assert.NotNull(cloned);
-        Console.WriteLine($"\nCloned configuration: {cloned.Name} ({cloned.ConfigID})");
+        if (cloned == null) throw new Exception("CloneConfigurationAsync failed");
 
         // Save all
-        Console.WriteLine("\nSaving all in-memory configurations...");
-        var saveAllResult = await _manager.SaveAllChangesAsync();
-        Assert.True(saveAllResult);
-        Console.WriteLine("\nAll configurations saved successfully.");
+        var saved = await _manager.SaveAllChangesAsync();
+        if (!saved) throw new Exception("SaveAllChangesAsync returned false");
 
-        // Delete original
-        Console.WriteLine($"\nDeleting original configuration: {newConfig.Name}...");
+        // Delete original config
         var deleteResult = await _manager.DeleteConfigurationAsync(newConfig.ConfigID);
-        Assert.True(deleteResult);
-        Console.WriteLine("\nOriginal configuration deleted.");
+        if (!deleteResult) throw new Exception("DeleteConfigurationAsync failed");
 
-        // Verify remaining
-        var remainingConfigs = await _repository.LoadAllAsync();
-        Assert.Single(remainingConfigs);
-        Assert.Equal(cloned.ConfigID, remainingConfigs.First().ConfigID);
-        Console.WriteLine($"\nRemaining configuration: {remainingConfigs.First().Name} ({remainingConfigs.First().ConfigID})");
+        // Verify only cloned remains
+        var remaining = await _repository.LoadAllAsync();
+        if (remaining.Count != 1) throw new Exception("Expected only 1 config remaining");
 
-        Console.WriteLine("\nConfiguration_CRUD_FullIntegration_Works test completed successfully.");
+        if (remaining.First().ConfigID != cloned.ConfigID)
+            throw new Exception("Cloned config not found after deletion");
     }
+
+    // ----------------------------------------------------
+    // xUnit Fact Wrapper
+    // ----------------------------------------------------
+    [Fact]
+    public async Task Configuration_CRUD_FullIntegration_Works() =>
+        await Configuration_CRUD_FullIntegration_Works_Internal();
 }

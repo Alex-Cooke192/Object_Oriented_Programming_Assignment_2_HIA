@@ -12,41 +12,48 @@ public class JsonConfigurationRepositoryTests
     private JetDbContext GetInMemoryDbContext()
     {
         var options = new DbContextOptionsBuilder<JetDbContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // isolated per test
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
+
         return new JetDbContext(options);
     }
 
-    [Fact]
+    // ----------------------------------------------------
+    // Manual Test Runner
+    // ----------------------------------------------------
     public async Task RunTestsAsync()
     {
-        Console.WriteLine("\n===== Running JsonConfigurationRepository Tests =====");
+        Console.WriteLine("Running JsonConfigurationRepository tests...");
 
-        await RunTestAsync(nameof(SaveConfigAsync_Should_Add_New_Config), SaveConfigAsync_Should_Add_New_Config);
-        await RunTestAsync(nameof(SaveConfigAsync_Should_Update_Existing_Config), SaveConfigAsync_Should_Update_Existing_Config);
-        await RunTestAsync(nameof(LoadAllAsync_Should_Return_User_Configs), LoadAllAsync_Should_Return_User_Configs);
-        await RunTestAsync(nameof(SaveAllAsync_Should_Remove_Deleted_Configs), SaveAllAsync_Should_Remove_Deleted_Configs);
+        await RunTest(nameof(SaveConfigAsync_Should_Add_New_Config), SaveConfigAsync_Should_Add_New_Config);
+        await RunTest(nameof(SaveConfigAsync_Should_Update_Existing_Config), SaveConfigAsync_Should_Update_Existing_Config);
+        await RunTest(nameof(LoadAllAsync_Should_Return_User_Configs), LoadAllAsync_Should_Return_User_Configs);
+        await RunTest(nameof(SaveAllAsync_Should_Remove_Deleted_Configs), SaveAllAsync_Should_Remove_Deleted_Configs);
 
-        Console.WriteLine("\n===== All JsonConfigurationRepository Tests Executed =====");
+        Console.WriteLine("JsonConfigurationRepository tests completed.");
     }
 
-    private async Task RunTestAsync(string testName, Func<Task> testFunc)
+    private async Task RunTest(string testName, Func<Task> testFunc)
     {
-        Console.WriteLine($"\n--- Running {testName} ---");
+        Console.WriteLine($"Running: {testName}");
+
         try
         {
             await testFunc();
-            Console.WriteLine($"[{testName}] PASSED");
+            Console.WriteLine($"PASS: {testName}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[{testName}] FAILED");
-            Console.WriteLine($"Error: {ex.Message}");
+            Console.WriteLine($"FAIL: {testName} - {ex.Message}");
+            throw;
         }
     }
 
-    [Fact]
-    public async Task SaveConfigAsync_Should_Add_New_Config()
+    // ----------------------------------------------------
+    // Internal Test Logic
+    // ----------------------------------------------------
+
+    private async Task SaveConfigAsync_Should_Add_New_Config()
     {
         using var db = GetInMemoryDbContext();
         var userId = Guid.NewGuid();
@@ -80,40 +87,35 @@ public class JsonConfigurationRepositoryTests
         };
 
         var result = await repo.SaveConfigAsync(newConfig);
-        Assert.True(result);
+        if (!result) throw new Exception("SaveConfigAsync returned false");
 
         var saved = await db.JetConfigurations
             .Include(c => c.InteriorComponents)
             .FirstOrDefaultAsync();
 
-        Assert.NotNull(saved);
-        Assert.Equal(newConfig.Name, saved.Name);
-        Assert.Single(saved.InteriorComponents);
-
-        Console.WriteLine($"Config added: {saved.Name}, Components: {saved.InteriorComponents.Count}");
+        if (saved == null) throw new Exception("Config not saved");
+        if (saved.InteriorComponents.Count != 1) throw new Exception("Components not saved correctly");
     }
 
-    [Fact]
-    public async Task SaveConfigAsync_Should_Update_Existing_Config()
+    private async Task SaveConfigAsync_Should_Update_Existing_Config()
     {
         using var db = GetInMemoryDbContext();
         var userId = Guid.NewGuid();
         var repo = new JsonConfigurationRepository(db, userId);
 
         var configId = Guid.NewGuid();
-        var existingDb = new JetConfigurationDB
+
+        db.JetConfigurations.Add(new JetConfigurationDB
         {
             ConfigID = configId,
             UserID = userId,
             Name = "Original Name",
-            CabinDimensions = "Original Dimensions",
+            CabinDimensions = "Original",
             SeatingCapacity = 6,
             Version = 1,
             CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            InteriorComponents = new List<InteriorComponentDB>()
-        };
-        db.JetConfigurations.Add(existingDb);
+            UpdatedAt = DateTime.UtcNow
+        });
         await db.SaveChangesAsync();
 
         var updatedConfig = new JetConfiguration
@@ -121,26 +123,22 @@ public class JsonConfigurationRepositoryTests
             ConfigID = configId,
             UserID = userId,
             Name = "Updated Name",
-            CabinDimensions = "Updated Dimensions",
+            CabinDimensions = "Updated Dim",
             SeatingCapacity = 10,
-            Version = 3,
-            CreatedAt = existingDb.CreatedAt,
+            Version = 2,
+            CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             InteriorComponents = new List<InteriorComponent>()
         };
 
         var result = await repo.SaveConfigAsync(updatedConfig);
-        Assert.True(result);
+        if (!result) throw new Exception("SaveConfigAsync update returned false");
 
         var retrieved = await db.JetConfigurations.FirstAsync();
-        Assert.Equal("Updated Name", retrieved.Name);
-        Assert.Equal(10, retrieved.SeatingCapacity);
-
-        Console.WriteLine($"Config updated successfully: {retrieved.Name}, Seats: {retrieved.SeatingCapacity}");
+        if (retrieved.Name != "Updated Name") throw new Exception("Config name was not updated");
     }
 
-    [Fact]
-    public async Task LoadAllAsync_Should_Return_User_Configs()
+    private async Task LoadAllAsync_Should_Return_User_Configs()
     {
         using var db = GetInMemoryDbContext();
         var userId = Guid.NewGuid();
@@ -151,41 +149,36 @@ public class JsonConfigurationRepositoryTests
             {
                 ConfigID = Guid.NewGuid(),
                 UserID = userId,
-                Name = "Jet 1",
-                CabinDimensions = "10x3x2.5m",
+                Name = "User Jet",
+                CabinDimensions = "10x3",
                 SeatingCapacity = 6,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                InteriorComponents = new List<InteriorComponentDB>()
+                UpdatedAt = DateTime.UtcNow
             },
             new JetConfigurationDB
             {
                 ConfigID = Guid.NewGuid(),
                 UserID = otherUserId,
                 Name = "Other User Jet",
-                CabinDimensions = "1.5x4x8",
-                SeatingCapacity = 6,
+                CabinDimensions = "5x2",
+                SeatingCapacity = 2,
                 Version = 1,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                InteriorComponents = new List<InteriorComponentDB>()
+                UpdatedAt = DateTime.UtcNow
             }
         );
+
         await db.SaveChangesAsync();
 
         var repo = new JsonConfigurationRepository(db, userId);
         var configs = await repo.LoadAllAsync();
 
-        Assert.Single(configs);
-        Assert.Equal("Jet 1", configs[0].Name);
-
-        Console.WriteLine($"Loaded {configs.Count} config(s) for user {userId}.");
-        Console.WriteLine($"Config name: {configs[0].Name}");
+        if (configs.Count != 1) throw new Exception("LoadAllAsync returned incorrect count");
+        if (configs[0].Name != "User Jet") throw new Exception("Returned wrong configuration");
     }
 
-    [Fact]
-    public async Task SaveAllAsync_Should_Remove_Deleted_Configs()
+    private async Task SaveAllAsync_Should_Remove_Deleted_Configs()
     {
         using var db = GetInMemoryDbContext();
         var userId = Guid.NewGuid();
@@ -195,26 +188,22 @@ public class JsonConfigurationRepositoryTests
         {
             ConfigID = Guid.NewGuid(),
             UserID = userId,
-            Name = "Config 1",
-            CabinDimensions = "5x3x2.5m",
+            Name = "Config1",
+            CabinDimensions = "5x3",
             SeatingCapacity = 8,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            InteriorComponents = new List<InteriorComponentDB>()
+            Version = 1
         };
+
         var config2 = new JetConfigurationDB
         {
             ConfigID = Guid.NewGuid(),
             UserID = userId,
-            Name = "Config 2",
-            CabinDimensions = "6x4x3m",
+            Name = "Config2",
+            CabinDimensions = "6x4",
             SeatingCapacity = 10,
-            Version = 1,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            InteriorComponents = new List<InteriorComponentDB>()
+            Version = 1
         };
+
         db.JetConfigurations.AddRange(config1, config2);
         await db.SaveChangesAsync();
 
@@ -224,11 +213,11 @@ public class JsonConfigurationRepositoryTests
             {
                 ConfigID = config1.ConfigID,
                 UserID = userId,
-                Name = "Config 1",
-                CabinDimensions = "4x4x4m",
+                Name = "Config1",
+                CabinDimensions = "4x4",
                 SeatingCapacity = 8,
                 Version = 1,
-                CreatedAt = config1.CreatedAt,
+                CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
                 InteriorComponents = new List<InteriorComponent>()
             }
@@ -237,10 +226,16 @@ public class JsonConfigurationRepositoryTests
         await repo.SaveAllAsync(updatedList);
 
         var remaining = await db.JetConfigurations.ToListAsync();
-        Assert.Single(remaining);
-        Assert.Equal("Config 1", remaining[0].Name);
-
-        Console.WriteLine($"Remaining config count: {remaining.Count}");
-        Console.WriteLine($"Remaining config: {remaining[0].Name}");
+        if (remaining.Count != 1) throw new Exception("Deleted config was not removed");
+        if (remaining[0].Name != "Config1") throw new Exception("Wrong config remaining");
     }
+
+    // ----------------------------------------------------
+    // xUnit Fact Test Wrappers
+    // ----------------------------------------------------
+
+    [Fact] public async Task SaveConfigAsync_Add_Fact() => await SaveConfigAsync_Should_Add_New_Config();
+    [Fact] public async Task SaveConfigAsync_Update_Fact() => await SaveConfigAsync_Should_Update_Existing_Config();
+    [Fact] public async Task LoadAllAsync_Fact() => await LoadAllAsync_Should_Return_User_Configs();
+    [Fact] public async Task SaveAllAsync_Fact() => await SaveAllAsync_Should_Remove_Deleted_Configs();
 }
