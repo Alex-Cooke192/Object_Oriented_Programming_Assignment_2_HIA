@@ -15,10 +15,5 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
 	</ItemGroup>
 
-	<!-- 👇 ignore all .cs files inside /Tests -->
-	<ItemGroup>
-		<Compile Remove="Tests\**\*.cs" />
-		<None Include="Tests\**\*.cs" />
-	</ItemGroup>
 
 </Project>
