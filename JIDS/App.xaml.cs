@@ -1,56 +1,48 @@
 ﻿using System;
 using System.IO;
-using System.Threading.Tasks;
 using System.Windows;
 using JetInteriorApp.Data;
 using JetInteriorApp.Repositories;
-using JetInteriorApp.Interfaces;
 using JetInteriorApp.ViewModels;
 using JetInteriorApp.Views;
 using Microsoft.EntityFrameworkCore;
-using JetInteriorApp.Tests;
 
 namespace JetInteriorApp
 {
     public partial class App : Application
     {
-        protected override async void OnStartup(StartupEventArgs e)
+        protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
 
-#if DEBUG
-            try
-            {
-                Console.WriteLine("Running application startup test suite...");
-                var testMain = new TestMain();
-                await testMain.RunAllAsync();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Startup tests failed: {ex.Message}");
-            }
-#endif
-
-            // Always run this part in all builds
+            // Set up database path
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string dbPath = Path.Combine(baseDirectory, "Data", "jetconfigs.db");
 
+            // Ensure Data folder exists
             Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
 
+            // Configure EF Core SQLite
             var options = new DbContextOptionsBuilder<JetDbContext>()
                 .UseSqlite($"Data Source={dbPath}")
                 .Options;
 
+            // Create DB context and database file if missing
             var dbContext = new JetDbContext(options);
             dbContext.Database.EnsureCreated();
 
+            // Inject repository and ViewModel
             var authRepository = new AuthRepository(dbContext);
             var loginViewModel = new LoginViewModel(authRepository);
-            var loginView = new LoginView();
-            loginView.DataContext = loginViewModel;
+
+            // Launch Login Window
+            var loginView = new LoginView
+            {
+                DataContext = loginViewModel
+            };
+
             loginView.Show();
         }
     }
 }
-
 
