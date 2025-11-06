@@ -19,45 +19,42 @@ namespace JetInteriorApp
             base.OnStartup(e);
 
 #if DEBUG
-            // Run test suite before loading the UI
             try
             {
                 Console.WriteLine("Running application startup test suite...");
                 var testMain = new TestMain();
                 await testMain.RunAllAsync();
+
+                // Comment these out if you WANT the app to still open after tests:
+                Shutdown();
+                return;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Startup tests failed: {ex.Message}");
+                Shutdown();
+                return;
             }
-#endif
+#else
 
-            // Set up the database path
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string dbPath = Path.Combine(baseDirectory, "Data", "jetconfigs.db");
 
-            // Ensure Data folder exists
             Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
 
-            // Set up DbContext options
             var options = new DbContextOptionsBuilder<JetDbContext>()
                 .UseSqlite($"Data Source={dbPath}")
                 .Options;
 
-            // Create the DbContext and ensure database is created
             var dbContext = new JetDbContext(options);
-            dbContext.Database.EnsureCreated();  // Creates the database if it doesn't exist
+            dbContext.Database.EnsureCreated();
 
-            // Create the AuthRepository and LoginViewModel, passing the dbContext
             var authRepository = new AuthRepository(dbContext);
             var loginViewModel = new LoginViewModel(authRepository);
-
-            // Create the LoginView
             var loginView = new LoginView();
             loginView.DataContext = loginViewModel;
-
-            // Show the LoginView
             loginView.Show();
+#endif
         }
     }
 }
