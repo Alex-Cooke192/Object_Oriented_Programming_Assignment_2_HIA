@@ -62,8 +62,7 @@ namespace JetInteriorApp.ViewModels
 #if !DEBUG_TESTS
                 // Open the main window
                 var mainWindow = new MainWindow();
-                mainWindow.Show();
-#endif
+                mainWindow.Show()
                 // Close the login window
                 foreach (Window window in Application.Current.Windows)
                 {
@@ -73,6 +72,7 @@ namespace JetInteriorApp.ViewModels
                         break;
                     }
                 }
+#endif
             }
             else
             {
