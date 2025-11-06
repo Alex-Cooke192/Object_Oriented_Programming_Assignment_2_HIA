@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
 using JetInteriorApp.Data;
 using JetInteriorApp.Repositories;
@@ -7,14 +8,29 @@ using JetInteriorApp.Interfaces;
 using JetInteriorApp.ViewModels;
 using JetInteriorApp.Views;
 using Microsoft.EntityFrameworkCore;
+using JetInteriorApp.Tests;
 
 namespace JetInteriorApp
 {
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+
+#if DEBUG
+            // Run test suite before loading the UI
+            try
+            {
+                Console.WriteLine("Running application startup test suite...");
+                var testMain = new TestMain();
+                await testMain.RunAllAsync();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Startup tests failed: {ex.Message}");
+            }
+#endif
 
             // Set up the database path
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -37,8 +53,8 @@ namespace JetInteriorApp
             var loginViewModel = new LoginViewModel(authRepository);
 
             // Create the LoginView
-            var loginView = new LoginView();  // Parameterless constructor
-            loginView.DataContext = loginViewModel;  // Inject ViewModel into the view
+            var loginView = new LoginView();
+            loginView.DataContext = loginViewModel;
 
             // Show the LoginView
             loginView.Show();
