@@ -28,6 +28,9 @@ namespace JetInteriorApp.Helpers
         // ICommand requires void return type
         public void Execute(object? parameter)
         {
+            if (!CanExecute(parameter))
+                return;
+
             if (_executeAsync != null)
             {
                 // fire-and-forget to keep ICommand happy
@@ -38,6 +41,7 @@ namespace JetInteriorApp.Helpers
                 _executeSync!(parameter);
             }
         }
+
 
         // Extra helper: allows tests to await async commands
         public Task? ExecuteAsync(object? parameter)
