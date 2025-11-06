@@ -23,7 +23,7 @@ namespace JetInteriorApp.Tests
 
             // 2. Configure EF Core with SQLite
             var options = new DbContextOptionsBuilder<JetDbContext>()
-                .UseSqlite($"Data Source={dbPath}")
+                .UseInMemoryDatabase(databaseName: "UnitTestDB")
                 .Options;
 
             // 3. Create context
