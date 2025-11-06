@@ -59,11 +59,11 @@ namespace JetInteriorApp.ViewModels
             if (success)
             {
                 StatusMessage = $"Welcome, {Username}!";
-
+#if !DEBUG_TESTS
                 // Open the main window
                 var mainWindow = new MainWindow();
                 mainWindow.Show();
-
+#endif
                 // Close the login window
                 foreach (Window window in Application.Current.Windows)
                 {
