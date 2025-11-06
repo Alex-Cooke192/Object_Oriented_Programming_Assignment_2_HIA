@@ -24,19 +24,14 @@ namespace JetInteriorApp
                 Console.WriteLine("Running application startup test suite...");
                 var testMain = new TestMain();
                 await testMain.RunAllAsync();
-
-                // Comment these out if you WANT the app to still open after tests:
-                Shutdown();
-                return;
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Startup tests failed: {ex.Message}");
-                Shutdown();
-                return;
             }
-#else
+#endif
 
+            // Always run this part in all builds
             string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string dbPath = Path.Combine(baseDirectory, "Data", "jetconfigs.db");
 
@@ -54,8 +49,8 @@ namespace JetInteriorApp
             var loginView = new LoginView();
             loginView.DataContext = loginViewModel;
             loginView.Show();
-#endif
         }
     }
 }
+
 
