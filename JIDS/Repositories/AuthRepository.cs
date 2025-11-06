@@ -30,12 +30,18 @@ namespace JetInteriorApp.Repositories
 
         public async Task<bool> RegisterUserAsync(string username, string email, string password)
         {
+            // NEW INPUT VALIDATION
+            if (string.IsNullOrWhiteSpace(username) ||
+                string.IsNullOrWhiteSpace(email) ||
+                string.IsNullOrWhiteSpace(password))
+            {
+                return false;
+            }
+
             var existingUserDb = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-
             if (existingUserDb != null)
-                return false; // Username already exists
+                return false;
 
-            // Hash password before storing
             var hashedPassword = PasswordHasher.HashPassword(password);
 
             var userDb = new UserDB
