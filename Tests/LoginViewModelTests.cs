@@ -8,6 +8,8 @@ using JetInteriorApp.Helpers;
 using Moq;
 using Xunit;
 
+[Collection("STA Tests")]
+
 public class LoginViewModelTests
 {
     private readonly Mock<IAuthRepository> _mockRepo;
