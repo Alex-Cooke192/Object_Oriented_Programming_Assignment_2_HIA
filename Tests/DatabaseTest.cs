@@ -10,10 +10,16 @@ public class DatabaseTester
 {
     private readonly JetDbContext _db;
 
-    public DatabaseTester(JetDbContext db)
+    public DatabaseTester()
     {
-        _db = db;
+        var options = new DbContextOptionsBuilder<JetDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        _db = new JetDbContext(options);
+        _db.Database.EnsureCreated();
     }
+
 
     // --------------------------------------------------
     // Manual test runner

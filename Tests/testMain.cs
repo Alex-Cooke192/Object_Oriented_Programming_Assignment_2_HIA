@@ -30,7 +30,7 @@ namespace JetInteriorApp.Tests
             using var db = new JetDbContext(options);
 
             // 4. Run table & relationship integrity tests
-            var tester = new DatabaseTester(db);
+            var tester = new DatabaseTester();
             await tester.RunTestsAsync();
 
             // 5. Run unit tests on JsonConfigurationRepository

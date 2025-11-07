@@ -19,21 +19,16 @@ namespace JetInteriorApp.Repositories
 
         public UserDB? LastAuthenticatedUser { get; private set; }
 
-        public async Task<bool> ValidateUserAsync(string username, string plainPassword)
+        public async Task<UserDB?> ValidateUserAsync(string username, string plainPassword)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            if (user == null) return null;
 
-            if (user == null)
-            {
-                LastAuthenticatedUser = null;
-                return false;
-            }
-
-            bool valid = PasswordHasher.VerifyPassword(plainPassword, user.PasswordHash);
-
-            LastAuthenticatedUser = valid ? user : null;
-            return valid;
+            return PasswordHasher.VerifyPassword(plainPassword, user.PasswordHash)
+                ? user
+                : null;
         }
+
 
 
         public async Task<bool> RegisterUserAsync(string username, string email, string password)

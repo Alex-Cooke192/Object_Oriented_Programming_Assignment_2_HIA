@@ -55,35 +55,23 @@ namespace JetInteriorApp.ViewModels
 
         private async Task LoginAsync()
         {
-            bool success = await _authRepository.ValidateUserAsync(Username, Password);
+            var user = await _authRepository.ValidateUserAsync(Username, Password);
 
-            if (success)
+            if (user != null)
             {
-                var user = (_authRepository as AuthRepository)?.LastAuthenticatedUser;
+                StatusMessage = $"Welcome, {user.Username}!";
 
-                if (user != null)
-                {
-                    StatusMessage = $"Welcome, {user.Username}!";
-
-                    var mainWindow = new MainWindow(user.UserID);
-                    mainWindow.Show();
-
-                    Application.Current.Windows
-                        .OfType<LoginView>()
-                        .First()
-                        .Close();
-                }
-                else
-                {
-                    StatusMessage = "Unexpected authentication error.";
-                }
+#if !DEBUG_TESTS
+        var mainWindow = new MainWindow(user.UserID);
+        mainWindow.Show();
+        Application.Current.Windows.OfType<LoginView>().FirstOrDefault()?.Close();
+#endif
             }
             else
             {
                 StatusMessage = "Invalid username or password.";
             }
         }
-
 
         private async Task RegisterAsync()
         {

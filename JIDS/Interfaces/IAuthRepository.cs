@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JetInteriorApp.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,7 +9,7 @@ namespace JetInteriorApp.Interfaces
 {
     public interface IAuthRepository
     {
-        Task<bool> ValidateUserAsync(string username, string plainPassword);
+        Task<UserDB?> ValidateUserAsync(string username, string plainPassword);
         Task<bool> RegisterUserAsync(string username, string email, string plainPassword);
     }
 

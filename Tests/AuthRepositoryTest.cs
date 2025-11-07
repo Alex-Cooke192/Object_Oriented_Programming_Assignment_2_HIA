@@ -40,7 +40,7 @@ public class AuthRepositoryTests
         await TestRegisterUser_InvalidInputs();
         await TestRegister_AssignsGuid();
 
-        Console.WriteLine("\n✅ All AuthRepository tests completed.");
+        Console.WriteLine("\nAll AuthRepository tests completed.");
     }
 
     // ----------------------------------------------------
@@ -61,8 +61,10 @@ public class AuthRepositoryTests
             });
             await _context.SaveChangesAsync();
 
-            var result = await _repo.ValidateUserAsync("validUser", "Correct123");
-            if (!result) throw new Exception("Expected true, got false");
+            var user = await _repo.ValidateUserAsync("validUser", "Correct123");
+
+            if (user == null || user.Username != "validUser")
+                throw new Exception("Expected valid user returned null");
 
             Console.WriteLine("ValidateUser_ValidCredentials: PASSED");
         }
@@ -88,7 +90,9 @@ public class AuthRepositoryTests
             await _context.SaveChangesAsync();
 
             var result = await _repo.ValidateUserAsync("wrongPassUser", "BADPW");
-            if (result) throw new Exception("Expected false, got true");
+
+            if (result != null)
+                throw new Exception("Expected null, got a user");
 
             Console.WriteLine("ValidateUser_IncorrectPassword: PASSED");
         }
@@ -104,7 +108,9 @@ public class AuthRepositoryTests
         try
         {
             var result = await _repo.ValidateUserAsync("ghostUser", "anything");
-            if (result) throw new Exception("Expected false, got true");
+
+            if (result != null)
+                throw new Exception("Expected null, got a user");
 
             Console.WriteLine("ValidateUser_UnknownUser: PASSED");
         }
@@ -119,13 +125,13 @@ public class AuthRepositoryTests
     {
         try
         {
-            var result1 = await _repo.ValidateUserAsync(null, "test");
-            var result2 = await _repo.ValidateUserAsync("", "test");
-            var result3 = await _repo.ValidateUserAsync("user", null);
-            var result4 = await _repo.ValidateUserAsync("user", "");
+            var r1 = await _repo.ValidateUserAsync(null, "test");
+            var r2 = await _repo.ValidateUserAsync("", "test");
+            var r3 = await _repo.ValidateUserAsync("user", null);
+            var r4 = await _repo.ValidateUserAsync("user", "");
 
-            if (result1 || result2 || result3 || result4)
-                throw new Exception("Invalid input returned true");
+            if (r1 != null || r2 != null || r3 != null || r4 != null)
+                throw new Exception("Invalid input returned a user");
 
             Console.WriteLine("ValidateUser_InvalidInputs: PASSED");
         }
@@ -167,7 +173,8 @@ public class AuthRepositoryTests
 
             var result = await _repo.RegisterUserAsync("existsUser", "test@mail.com", "NewPW");
 
-            if (result) throw new Exception("Expected false, got true");
+            if (result)
+                throw new Exception("Expected false, got true");
 
             Console.WriteLine("RegisterUser_UsernameExists: PASSED");
         }
@@ -233,4 +240,3 @@ public class AuthRepositoryTests
     [Fact] public async Task RegisterUser_InvalidInputs_Fact() => await TestRegisterUser_InvalidInputs();
     [Fact] public async Task Register_AssignsGuid_Fact() => await TestRegister_AssignsGuid();
 }
-
