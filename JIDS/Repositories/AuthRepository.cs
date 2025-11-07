@@ -17,16 +17,24 @@ namespace JetInteriorApp.Repositories
             _context = context;
         }
 
-        public async Task<bool> ValidateUserAsync(string username, string password)
+        public UserDB? LastAuthenticatedUser { get; private set; }
+
+        public async Task<bool> ValidateUserAsync(string username, string plainPassword)
         {
-            var userDb = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
 
-            if (userDb == null)
+            if (user == null)
+            {
+                LastAuthenticatedUser = null;
                 return false;
+            }
 
-            // Secure BCrypt verification
-            return PasswordHasher.VerifyPassword(password, userDb.PasswordHash);
+            bool valid = PasswordHasher.VerifyPassword(plainPassword, user.PasswordHash);
+
+            LastAuthenticatedUser = valid ? user : null;
+            return valid;
         }
+
 
         public async Task<bool> RegisterUserAsync(string username, string email, string password)
         {
