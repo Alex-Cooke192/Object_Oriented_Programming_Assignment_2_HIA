@@ -6,7 +6,7 @@
 		<UseWPF>true</UseWPF>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
-		<DefineConstants>DEBUG_TESTS</DefineConstants>
+		<!--<DefineConstants>DEBUG_TESTS</DefineConstants> -->
 	</PropertyGroup>
 
 	<ItemGroup>
