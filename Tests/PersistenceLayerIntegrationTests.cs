@@ -135,7 +135,8 @@ public class ConfigurationIntegrationTests : IAsyncLifetime
         if (cloned == null) throw new Exception("CloneConfigurationAsync failed");
 
         // Save all
-        var saved = await _manager.SaveAllChangesAsync();
+        var configsToSave = _repository.LoadAllAsync().Result;
+        var saved = await _manager.SaveAllChangesAsync(configsToSave);
         if (!saved) throw new Exception("SaveAllChangesAsync returned false");
 
         // Delete original config
