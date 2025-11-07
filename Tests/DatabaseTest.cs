@@ -18,8 +18,19 @@ public class DatabaseTester
 
         _db = new JetDbContext(options);
         _db.Database.EnsureCreated();
-    }
 
+        // Seed a test user so foreign keys won't fail
+        _db.Users.Add(new UserDB
+        {
+            UserID = Guid.NewGuid(),
+            Username = "TestUser",
+            Email = "test@mail.com",
+            PasswordHash = "placeholder",
+            CreatedAt = DateTime.UtcNow
+        });
+
+        _db.SaveChanges();
+    }
 
     // --------------------------------------------------
     // Manual test runner
