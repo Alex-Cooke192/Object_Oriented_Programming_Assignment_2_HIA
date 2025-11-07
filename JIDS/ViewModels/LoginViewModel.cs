@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Linq;
 
 namespace JetInteriorApp.ViewModels
 {
@@ -58,21 +59,24 @@ namespace JetInteriorApp.ViewModels
 
             if (success)
             {
-                StatusMessage = $"Welcome, {Username}!";
-#if !DEBUG_TESTS
-                // Open the main window
-                var mainWindow = new MainWindow();
-                mainWindow.Show()
-                // Close the login window
-                foreach (Window window in Application.Current.Windows)
+                var user = (_authRepository as AuthRepository)?.LastAuthenticatedUser;
+
+                if (user != null)
                 {
-                    if (window is LoginView)
-                    {
-                        window.Close();
-                        break;
-                    }
+                    StatusMessage = $"Welcome, {user.Username}!";
+
+                    var mainWindow = new MainWindow(user.UserID);
+                    mainWindow.Show();
+
+                    Application.Current.Windows
+                        .OfType<LoginView>()
+                        .First()
+                        .Close();
                 }
-#endif
+                else
+                {
+                    StatusMessage = "Unexpected authentication error.";
+                }
             }
             else
             {
@@ -98,3 +102,4 @@ namespace JetInteriorApp.ViewModels
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
+
