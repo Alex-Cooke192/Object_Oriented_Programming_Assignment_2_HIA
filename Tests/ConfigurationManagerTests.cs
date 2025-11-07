@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading.Tasks;
 using JetInteriorApp.Models;
 using JetInteriorApp.Services.Configuration;
-using JetInteriorApp.Interfaces; 
+using JetInteriorApp.Interfaces;
 using Moq;
 using Xunit;
 
@@ -20,7 +19,6 @@ public class ConfigurationManagerTests
         _userId = Guid.NewGuid();
         _mockRepo = new Mock<IConfigurationRepository>();
 
-        // Setup an existing configuration
         _existingConfig = new JetConfiguration
         {
             ConfigID = Guid.NewGuid(),
@@ -40,25 +38,27 @@ public class ConfigurationManagerTests
                     Type = "Chair",
                     Tier = "Economy",
                     Material = "Leather",
-                    Position = "FrontLeft",
+                    Position = "{\"x\":0,\"y\":0}",
                     CreatedAt = DateTime.UtcNow,
                     PropertiesJson = "{}"
                 }
             }
         };
 
+        // Mock repository methods
         _mockRepo.Setup(r => r.LoadAllAsync())
             .ReturnsAsync(new List<JetConfiguration> { _existingConfig });
-        _mockRepo.Setup(r => r.SaveConfigAsync(It.IsAny<JetConfiguration>())).ReturnsAsync(true);
-        _mockRepo.Setup(r => r.SaveAllAsync(It.IsAny<List<JetConfiguration>>())).ReturnsAsync(true);
+
+        _mockRepo.Setup(r => r.SaveConfigAsync(It.IsAny<JetConfiguration>()))
+            .ReturnsAsync(true);
+
+        _mockRepo.Setup(r => r.SaveAllAsync(It.IsAny<List<JetConfiguration>>()))
+            .ReturnsAsync(true);
 
         _manager = new ConfigurationManager(_mockRepo.Object, _userId);
-        _manager.InitializeAsync().Wait(); // load configs into memory
+        _manager.InitializeAsync().Wait();
     }
 
-    // ------------------------
-    // Manual test runner
-    // ------------------------
     public async Task RunTestsAsync()
     {
         Console.WriteLine("Running ConfigurationManager tests...");
@@ -72,88 +72,55 @@ public class ConfigurationManagerTests
         Console.WriteLine("All ConfigurationManager tests completed successfully.");
     }
 
-    // ------------------------
-    // Internal test logic
-    // ------------------------
     private async Task TestGetConfigurationAsync()
     {
-        try
-        {
-            var config = _manager.GetConfiguration(_existingConfig.ConfigID);
-            if (config == null) throw new Exception("Config is null");
+        var config = _manager.GetConfiguration(_existingConfig.ConfigID);
+        if (config == null) throw new Exception("Config is null");
 
-            Console.WriteLine($"GetConfiguration_ReturnsCorrectConfig: PASSED - Retrieved '{config.Name}'");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"GetConfiguration_ReturnsCorrectConfig: FAILED - {ex.Message}");
-            throw;
-        }
-
+        Console.WriteLine($"GetConfiguration_ReturnsCorrectConfig: PASSED");
         await Task.CompletedTask;
     }
 
     private async Task TestCreateConfigurationAsync()
     {
-        try
+        var newBase = new JetConfiguration
         {
-            var newBase = new JetConfiguration
-            {
-                CabinDimensions = "20x20x20",
-                SeatingCapacity = 6,
-                Version = 0,
-                InteriorComponents = new List<InteriorComponent>()
-            };
+            CabinDimensions = "20x20x20",
+            SeatingCapacity = 6,
+            Version = 0,
+            InteriorComponents = new List<InteriorComponent>()
+        };
 
-            var created = await _manager.CreateConfigurationAsync("NewConfig", newBase);
-            if (created == null) throw new Exception("Created config is null");
+        var created = await _manager.CreateConfigurationAsync("NewConfig", newBase);
+        if (created == null) throw new Exception("Created config is null");
 
-            Console.WriteLine($"CreateConfiguration_AddsNewConfig: PASSED - '{created.Name}' (ID {created.ConfigID})");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"CreateConfiguration_AddsNewConfig: FAILED - {ex.Message}");
-            throw;
-        }
+        Console.WriteLine("CreateConfiguration_AddsNewConfig: PASSED");
     }
 
     private async Task TestCloneConfigurationAsync()
     {
-        try
-        {
-            var clone = await _manager.CloneConfigurationAsync(_existingConfig.ConfigID);
-            if (clone == null) throw new Exception("Clone is null");
+        var clone = await _manager.CloneConfigurationAsync(_existingConfig.ConfigID);
+        if (clone == null) throw new Exception("Clone returned null");
 
-            Console.WriteLine($"CloneConfiguration_CreatesCopyWithModifiedName: PASSED - '{clone.Name}' (ID {clone.ConfigID})");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"CloneConfiguration_CreatesCopyWithModifiedName: FAILED - {ex.Message}");
-            throw;
-        }
+        Console.WriteLine("CloneConfiguration_CreatesCopyWithModifiedName: PASSED");
     }
 
     private async Task TestDeleteConfigurationAsync()
     {
-        try
-        {
-            var result = await _manager.DeleteConfigurationAsync(_existingConfig.ConfigID);
-            if (!result) throw new Exception("Delete failed");
+        var result = await _manager.DeleteConfigurationAsync(_existingConfig.ConfigID);
+        if (!result) throw new Exception("Delete returned false");
 
-            Console.WriteLine("DeleteConfiguration_RemovesConfig: PASSED");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"DeleteConfiguration_RemovesConfig: FAILED - {ex.Message}");
-            throw;
-        }
+        Console.WriteLine("DeleteConfiguration_RemovesConfig: PASSED");
     }
 
     private async Task TestSaveAllChangesAsync()
     {
         try
         {
-            var result = await _manager.SaveAllChangesAsync();
+            // Get the current set of configs to pass into SaveAllChangesAsync
+            var configs = await _manager.InitializeAsync(); // returns List<JetConfiguration>
+
+            var result = await _manager.SaveAllChangesAsync(configs);
             if (!result) throw new Exception("SaveAllChanges failed");
 
             Console.WriteLine("SaveAllChanges_ReturnsTrue: PASSED");
@@ -165,21 +132,9 @@ public class ConfigurationManagerTests
         }
     }
 
-    // ------------------------
-    // Optional xUnit tests
-    // ------------------------
-    [Fact]
-    public async Task GetConfiguration_Fact() => await TestGetConfigurationAsync();
-
-    [Fact]
-    public async Task CreateConfiguration_Fact() => await TestCreateConfigurationAsync();
-
-    [Fact]
-    public async Task CloneConfiguration_Fact() => await TestCloneConfigurationAsync();
-
-    [Fact]
-    public async Task DeleteConfiguration_Fact() => await TestDeleteConfigurationAsync();
-
-    [Fact]
-    public async Task SaveAllChanges_Fact() => await TestSaveAllChangesAsync();
+    [Fact] public async Task GetConfiguration_Fact() => await TestGetConfigurationAsync();
+    [Fact] public async Task CreateConfiguration_Fact() => await TestCreateConfigurationAsync();
+    [Fact] public async Task CloneConfiguration_Fact() => await TestCloneConfigurationAsync();
+    [Fact] public async Task DeleteConfiguration_Fact() => await TestDeleteConfigurationAsync();
+    [Fact] public async Task SaveAllChanges_Fact() => await TestSaveAllChangesAsync();
 }

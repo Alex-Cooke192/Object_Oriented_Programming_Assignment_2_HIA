@@ -28,7 +28,6 @@ namespace JetInteriorApp.ViewModels
 
         public string StatusText { get; set; } = "";
 
-        // Commands
         public ICommand RefreshCommand { get; }
         public ICommand SaveAllCommand { get; }
         public ICommand NewConfigCommand { get; }
@@ -57,7 +56,6 @@ namespace JetInteriorApp.ViewModels
             StatusText = "Loading...";
             OnPropertyChanged(nameof(StatusText));
 
-            // Get list of domain configs directly from InitializeAsync
             var configs = await _manager.InitializeAsync();
 
             Configurations.Clear();
@@ -67,7 +65,6 @@ namespace JetInteriorApp.ViewModels
             StatusText = "Loaded.";
             OnPropertyChanged(nameof(StatusText));
         }
-
 
         private async Task NewConfig()
         {
@@ -96,6 +93,7 @@ namespace JetInteriorApp.ViewModels
         private async Task DeleteConfig()
         {
             if (SelectedConfiguration == null) return;
+
             await _manager.DeleteConfigurationAsync(SelectedConfiguration.ConfigID);
             Configurations.Remove(SelectedConfiguration);
             SelectedConfiguration = null;
@@ -106,7 +104,9 @@ namespace JetInteriorApp.ViewModels
             StatusText = "Saving...";
             OnPropertyChanged(nameof(StatusText));
 
-            await _manager.SaveAllChangesAsync();
+            // Converts ViewModels back to domain models before saving
+            var domainConfigs = Configurations.Select(ToDomain).ToList();
+            await _manager.SaveAllChangesAsync(domainConfigs);
 
             StatusText = "Saved";
             OnPropertyChanged(nameof(StatusText));
@@ -119,13 +119,16 @@ namespace JetInteriorApp.ViewModels
             SelectedConfiguration.Components.Add(new ComponentModel
             {
                 ComponentID = Guid.NewGuid(),
+                ConfigID = SelectedConfiguration.ConfigID,
                 Name = "New Component",
                 Type = "Seat",
                 Tier = "Economy",
                 Material = "Fabric",
                 X = 0,
                 Y = 0,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                Position = "{\"x\":0,\"y\":0}",
+                PropertiesJson = "{}"
             });
         }
 
@@ -136,6 +139,7 @@ namespace JetInteriorApp.ViewModels
                 SelectedConfiguration.Components.RemoveAt(SelectedConfiguration.Components.Count - 1);
         }
 
+        // Converts a domain JetConfiguration to a ViewModel object
         private JetConfigurationModel ToVM(JetConfiguration config)
         {
             var vm = new JetConfigurationModel
@@ -157,6 +161,7 @@ namespace JetInteriorApp.ViewModels
                     vm.Components.Add(new ComponentModel
                     {
                         ComponentID = ic.ComponentID,
+                        ConfigID = config.ConfigID,
                         Name = ic.Name,
                         Type = ic.Type,
                         Tier = ic.Tier,
@@ -171,13 +176,39 @@ namespace JetInteriorApp.ViewModels
             return vm;
         }
 
+        // Converts ViewModel data back to domain model so the repository can persist changes
+        private JetConfiguration ToDomain(JetConfigurationModel vm)
+        {
+            return new JetConfiguration
+            {
+                ConfigID = vm.ConfigID,
+                UserID = vm.UserID,
+                Name = vm.Name,
+                CabinDimensions = vm.CabinDimensions,
+                SeatingCapacity = vm.SeatingCapacity,
+                CreatedAt = vm.CreatedAt,
+                UpdatedAt = DateTime.UtcNow,
+                Version = vm.Version,
+                InteriorComponents = vm.Components.Select(c => new InteriorComponent
+                {
+                    ComponentID = c.ComponentID,
+                    ConfigID = vm.ConfigID,
+                    Name = c.Name,
+                    Type = c.Type,
+                    Tier = c.Tier,
+                    Material = c.Material,
+                    Position = c.Position,
+                    CreatedAt = c.CreatedAt,
+                    PropertiesJson = c.PropertiesJson
+                }).ToList()
+            };
+        }
+
         public event PropertyChangedEventHandler? PropertyChanged;
         protected void OnPropertyChanged([CallerMemberName] string? n = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 
-
-    // ✅ Nested configuration record
     public class JetConfigurationModel : INotifyPropertyChanged
     {
         private string _name = "";
@@ -223,7 +254,6 @@ namespace JetInteriorApp.ViewModels
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
     }
 
-    // ✅ Nested component record
     public class ComponentModel : INotifyPropertyChanged
     {
         private string _name = "";
@@ -236,6 +266,7 @@ namespace JetInteriorApp.ViewModels
         private double _y;
 
         public Guid ComponentID { get; set; }
+        public Guid ConfigID { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public string Name
