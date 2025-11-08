@@ -1,0 +1,6 @@
+C:\Users\alexa\OneDrive\Documents\B&FC Year 2\Object-Oriented Programming\Assignment 2\Repo\03.11.2\JIDS\Tests\obj\Debug\net8.0\JetInteriorApp.Tests.csproj.AssemblyReference.cache
+C:\Users\alexa\OneDrive\Documents\B&FC Year 2\Object-Oriented Programming\Assignment 2\Repo\03.11.2\JIDS\Tests\obj\Debug\net8.0\JetInteriorApp.Tests.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\alexa\OneDrive\Documents\B&FC Year 2\Object-Oriented Programming\Assignment 2\Repo\03.11.2\JIDS\Tests\obj\Debug\net8.0\JetInteriorApp.Tests.AssemblyInfoInputs.cache
+C:\Users\alexa\OneDrive\Documents\B&FC Year 2\Object-Oriented Programming\Assignment 2\Repo\03.11.2\JIDS\Tests\obj\Debug\net8.0\JetInteriorApp.Tests.AssemblyInfo.cs
+C:\Users\alexa\OneDrive\Documents\B&FC Year 2\Object-Oriented Programming\Assignment 2\Repo\03.11.2\JIDS\Tests\obj\Debug\net8.0\JetInteriorApp.Tests.csproj.CoreCompileInputs.cache
+C:\Users\alexa\OneDrive\Documents\B&FC Year 2\Object-Oriented Programming\Assignment 2\Repo\03.11.2\JIDS\Tests\obj\Debug\net8.0\JetInteriorApp.Tests.sourcelink.json

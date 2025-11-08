@@ -15,5 +15,5 @@ public class UserDB
     public DateTime CreatedAt { get; set; }
 
     // Navigation property
-    public ICollection<JetConfigurationDB> Configurations { get; set; }
+    public ICollection<JetConfigurationDB>? Configurations { get; set; }
 }
