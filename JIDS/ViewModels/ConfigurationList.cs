@@ -82,7 +82,10 @@ namespace JIDS.ViewModels
 
             RefreshCommand = new RelayCommand(async () => await LoadConfigurationsAsync());
 
-            // kick off initial load (fire-and-forget is ok here; UI should handle busy state separately)
+            // subscribe to session changes so list reloads when the user switches or logs in/out
+            _userSession.SessionChanged += () => { _ = LoadConfigurationsAsync(); };
+
+            // initial load
             _ = LoadConfigurationsAsync();
         }
 
