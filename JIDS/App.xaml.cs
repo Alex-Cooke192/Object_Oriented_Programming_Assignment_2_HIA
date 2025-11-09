@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
-using JetInteriorApp.Data;
-using JetInteriorApp.Repositories;
+using JIDS.Data;
+using JIDS.Repositories;
 using Microsoft.EntityFrameworkCore;
 using JIDS;
 
@@ -33,8 +33,8 @@ namespace JetInteriorApp
             dbContext.Database.EnsureCreated();
 
             // Register lightweight application services in Application resources
-            var navigationService = new JetInteriorApp.Services.NavigationService();
-            var userSession = new JetInteriorApp.Services.UserSessionService();
+            var navigationService = new JIDS.Services.NavigationService();
+            var userSession = new JIDS.Services.UserSessionService();
 
             Application.Current.Resources["NavigationService"] = navigationService;
             Application.Current.Resources["UserSessionService"] = userSession;
