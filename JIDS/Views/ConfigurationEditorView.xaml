@@ -24,11 +24,12 @@
                 <TextBox Text="{Binding SeatingCapacity, UpdateSourceTrigger=PropertyChanged}" Margin="0,4,0,8"/>
             </StackPanel>
 
-            <StackPanel Orientation="Vertical" Margin="16,0,0,0" VerticalAlignment="Top">
-                <Button Content="Add Component" Width="140" Margin="0,0,0,8" Command="{Binding AddComponentCommand}"/>
-                <Button Content="Remove Selected" Width="140" Margin="0,0,0,8" Command="{Binding RemoveComponentCommand}" />
-                <Button Content="Clone Configuration" Width="140" Margin="0,0,0,8" Command="{Binding CloneCommand}" />
-            </StackPanel>
+			<StackPanel Orientation="Vertical" Margin="16,0,0,0" VerticalAlignment="Top">
+				<Button Content="Add Component" Width="140" Margin="0,0,0,8" Command="{Binding AddComponentCommand}"/>
+				<Button Content="Remove Selected" Width="140" Margin="0,0,0,8" Command="{Binding RemoveComponentCommand}" />
+				<Button Content="Clone Configuration" Width="140" Margin="0,0,0,8" Command="{Binding CloneCommand}" />
+				<Button Content="Review Summary" Width="140" Margin="0,0,0,8" Command="{Binding ReviewCommand}" />
+			</StackPanel>
         </StackPanel>
 
         <!-- Components DataGrid -->

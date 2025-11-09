@@ -127,7 +127,16 @@ namespace JIDS
                         break;
 
                     case "Summary":
-                        view = InstantiateIfExists($"JIDS.Views.SummaryView, {asmName}");
+                        // Only allow Summary when a JetConfiguration is supplied as parameter
+                        if (parameter is JetConfiguration cfg)
+                        {
+                            view = InstantiateIfExists($"JIDS.Views.SummaryView, {asmName}", cfg);
+                        }
+                        else
+                        {
+                            // explicit denial: no parameter => do not show summary
+                            view = null;
+                        }
                         break;
 
                     default:
