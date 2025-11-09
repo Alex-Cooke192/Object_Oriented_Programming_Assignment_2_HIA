@@ -37,7 +37,9 @@ namespace JIDS
 
             // Wire UI events
             NavList.SelectionChanged += NavList_SelectionChanged;
+            //BtnNew.Click += BtnNew_Click;
             BtnLogout.Click += BtnLogout_Click;
+            //SearchBox.KeyDown += SearchBox_KeyDown;
 
             // Subscribe to navigation requests from viewmodels/services
             _navigationService.Navigated += OnNavigated;
@@ -48,19 +50,37 @@ namespace JIDS
 
         private void BtnNew_Click(object? sender, RoutedEventArgs e)
         {
+            // Require authentication before opening editor
+            if (!EnsureAuthenticated()) return;
             _navigationService.NavigateTo("ConfigurationEditor");
         }
 
         private void BtnLogout_Click(object? sender, RoutedEventArgs e)
         {
             _userSession.Clear();
+            Application.Current.Resources.Remove("ConfigurationRepository");
+            Application.Current.Resources.Remove("ConfigurationWriter");
             _navigationService.NavigateTo("Login");
         }
+
+        //private void SearchBox_KeyDown(object? sender, KeyEventArgs e)
+        //{
+        //    if (e.Key == Key.Enter)
+        //    {
+        //        // Require authentication to view the list
+        //        if (!EnsureAuthenticated()) return;
+        //        _navigationService.NavigateTo("ConfigurationList", SearchBox.Text);
+        //    }
+        //}
 
         private void NavList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
         {
             if (NavList.SelectedItem is ListBoxItem item && item.Tag is string tag)
             {
+                // If navigation target requires auth, ensure the user is authenticated
+                if ((tag == "ConfigurationList" || tag == "ConfigurationEditor") && !EnsureAuthenticated())
+                    return;
+
                 _navigationService.NavigateTo(tag);
             }
         }
@@ -85,6 +105,14 @@ namespace JIDS
 
         private object? CreateViewFor(string viewName, object? parameter)
         {
+            // Prevent unauthorized access to certain views centrally
+            if ((viewName == "ConfigurationList" || viewName == "ConfigurationEditor") && !_userSession.IsAuthenticated)
+            {
+                // redirect to Login view instead; keep parameter null
+                viewName = "Login";
+                parameter = null;
+            }
+
             // Try to map to strongly-typed views if present in assembly
             var asmName = Assembly.GetExecutingAssembly().GetName().Name; // usually "JIDS"
             object? view = null;
@@ -122,21 +150,28 @@ namespace JIDS
                         view = InstantiateIfExists($"JIDS.Views.ConfigurationEditorView, {asmName}", parameter);
                         break;
 
+
                     case "Login":
-                        view = InstantiateIfExists($"JIDS.Views.LoginView, {asmName}");
-                        break;
+                        {
+                            view = InstantiateIfExists($"JIDS.Views.LoginView, {asmName}");
+                            if (view is FrameworkElement fe && fe.DataContext == null)
+                            {
+                                if (Application.Current.Resources["AuthRepository"] is JIDS.Interfaces.IAuthRepository authRepo
+                                    && Application.Current.Resources["UserSessionService"] is JIDS.Interfaces.IUserSessionService userSession
+                                    && Application.Current.Resources["NavigationService"] is JIDS.Interfaces.INavigationService nav)
+                                {
+                                    fe.DataContext = new JIDS.ViewModels.LoginViewModel(authRepo, userSession, nav);
+                                }
+                            }
+                            break;
+                        }
 
                     case "Summary":
-                        // Only allow Summary when a JetConfiguration is supplied as parameter
+                        // only created when passed a JetConfiguration (editor calls navigation with parameter)
                         if (parameter is JetConfiguration cfg)
-                        {
                             view = InstantiateIfExists($"JIDS.Views.SummaryView, {asmName}", cfg);
-                        }
                         else
-                        {
-                            // explicit denial: no parameter => do not show summary
                             view = null;
-                        }
                         break;
 
                     default:
@@ -207,6 +242,19 @@ namespace JIDS
                 Console.WriteLine($"InstantiateIfExists failed for '{typeName}': {ex}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Central helper to require authentication before navigating to protected views.
+        /// Returns true when authenticated; otherwise navigates to Login and returns false.
+        /// </summary>
+        private bool EnsureAuthenticated()
+        {
+            if (_userSession.IsAuthenticated) return true;
+
+            MessageBox.Show("Please log in to access this area.", "Authentication required", MessageBoxButton.OK, MessageBoxImage.Information);
+            _navigationService.NavigateTo("Login");
+            return false;
         }
 
         protected override void OnClosed(EventArgs e)
