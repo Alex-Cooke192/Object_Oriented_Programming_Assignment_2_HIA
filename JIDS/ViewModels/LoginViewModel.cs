@@ -1,15 +1,15 @@
-﻿using JetInteriorApp.Helpers;
-using JetInteriorApp.Interfaces;
+﻿using JIDS.Helpers;
+using JIDS.Interfaces;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using JetInteriorApp.Data;
-using JetInteriorApp.Models;
-using JetInteriorApp.Services.Configuration;
+using JIDS.Data;
+using JIDS.Models;
+using JIDS.Services.Configuration;
 using System.Windows;
 
-namespace JetInteriorApp.ViewModels
+namespace JIDS.ViewModels
 {
     public class LoginViewModel : INotifyPropertyChanged
     {

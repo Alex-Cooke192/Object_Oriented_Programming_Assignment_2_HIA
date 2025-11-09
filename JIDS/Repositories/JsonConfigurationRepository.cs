@@ -1,6 +1,6 @@
-using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces;
-using JetInteriorApp.Data; 
+using JIDS.Models;
+using JIDS.Interfaces;
+using JIDS.Data; 
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

@@ -1,7 +1,7 @@
 ﻿using System;
-using JetInteriorApp.Interfaces;
+using JIDS.Interfaces;
 
-namespace JetInteriorApp.Services
+namespace JIDS.Services
 {
     /// <summary>
     /// Raises an event for navigation requests. UI layer (Window / App) should subscribe and perform navigation.

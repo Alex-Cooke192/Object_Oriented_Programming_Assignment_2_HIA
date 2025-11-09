@@ -3,8 +3,8 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using JetInteriorApp.Interfaces;
-using JetInteriorApp.Models;
+using JIDS.Interfaces;
+using JIDS.Models;
 using JIDS.ViewModels;
 
 namespace JIDS
@@ -23,7 +23,7 @@ namespace JIDS
                 _navigationService = nav;
             else
             {
-                _navigationService = new JetInteriorApp.Services.NavigationService();
+                _navigationService = new JIDS.Services.NavigationService();
                 Application.Current.Resources["NavigationService"] = _navigationService;
             }
 
@@ -31,7 +31,7 @@ namespace JIDS
                 _userSession = session;
             else
             {
-                _userSession = new JetInteriorApp.Services.UserSessionService();
+                _userSession = new JIDS.Services.UserSessionService();
                 Application.Current.Resources["UserSessionService"] = _userSession;
             }
 

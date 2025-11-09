@@ -6,7 +6,7 @@ using JIDS.Repositories;
 using Microsoft.EntityFrameworkCore;
 using JIDS;
 
-namespace JetInteriorApp
+namespace JIDS
 {
     public partial class App : Application
     {

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using JetInteriorApp.Models; 
+using JIDS.Models; 
 
 
-namespace JetInteriorApp.Data
+namespace JIDS.Data
 {
     public class JetConfigurationDB
     {

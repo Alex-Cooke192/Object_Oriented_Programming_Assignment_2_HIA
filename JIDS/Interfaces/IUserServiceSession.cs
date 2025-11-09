@@ -1,7 +1,7 @@
 ﻿using System;
-using JetInteriorApp.Models;
+using JIDS.Models;
 
-namespace JetInteriorApp.Interfaces
+namespace JIDS.Interfaces
 {
     /// <summary>
     /// Session service for the current user.

@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace JetInteriorApp.Data
+namespace JIDS.Data
 {
     public class JetDbContext : DbContext
     {
