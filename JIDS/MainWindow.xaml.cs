@@ -37,9 +37,7 @@ namespace JIDS
 
             // Wire UI events
             NavList.SelectionChanged += NavList_SelectionChanged;
-            BtnNew.Click += BtnNew_Click;
             BtnLogout.Click += BtnLogout_Click;
-            SearchBox.KeyDown += SearchBox_KeyDown;
 
             // Subscribe to navigation requests from viewmodels/services
             _navigationService.Navigated += OnNavigated;
@@ -57,14 +55,6 @@ namespace JIDS
         {
             _userSession.Clear();
             _navigationService.NavigateTo("Login");
-        }
-
-        private void SearchBox_KeyDown(object? sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                _navigationService.NavigateTo("ConfigurationList", SearchBox.Text);
-            }
         }
 
         private void NavList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
