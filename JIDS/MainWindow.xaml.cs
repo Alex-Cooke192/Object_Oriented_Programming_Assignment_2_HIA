@@ -156,23 +156,56 @@ namespace JIDS
 
         private object? InstantiateIfExists(string typeName, object? parameter = null)
         {
-            var type = Type.GetType(typeName);
-            if (type == null) return null;
-
+            // Robust type lookup: try Type.GetType, then search loaded assemblies for the type name
             try
             {
-                // If parameter provided and there is a matching ctor, use it
+                // 1) Try Type.GetType first (works with assembly-qualified names)
+                var type = Type.GetType(typeName);
+                if (type == null)
+                {
+                    // Extract the short type name (before comma) and try the executing assembly and all loaded assemblies
+                    var shortName = typeName.Split(',')[0].Trim();
+
+                    // Try executing assembly
+                    var asm = Assembly.GetExecutingAssembly();
+                    type = asm.GetType(shortName);
+
+                    // Try all loaded assemblies
+                    if (type == null)
+                    {
+                        foreach (var a in AppDomain.CurrentDomain.GetAssemblies())
+                        {
+                            try
+                            {
+                                type = a.GetType(shortName);
+                                if (type != null) break;
+                            }
+                            catch { /* ignore */ }
+                        }
+                    }
+                }
+
+                if (type == null) return null;
+
+                // If a parameter is provided, attempt to find a matching ctor
                 if (parameter != null)
                 {
+                    // Try exact parameter type first
                     var ctor = type.GetConstructor(new[] { parameter.GetType() });
+                    if (ctor != null) return ctor.Invoke(new[] { parameter });
+
+                    // Try a constructor accepting object (fallback)
+                    ctor = type.GetConstructor(new[] { typeof(object) });
                     if (ctor != null) return ctor.Invoke(new[] { parameter });
                 }
 
                 // Default ctor
                 return Activator.CreateInstance(type);
             }
-            catch
+            catch (Exception ex)
             {
+                // Write debug info and fail gracefully so the UI can show the fallback message
+                Console.WriteLine($"InstantiateIfExists failed for '{typeName}': {ex}");
                 return null;
             }
         }
