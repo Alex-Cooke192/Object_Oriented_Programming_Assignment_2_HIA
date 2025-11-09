@@ -13,8 +13,9 @@ namespace JetInteriorApp.Services
     {
         private User? _currentUser;
 
-        public Guid CurrentUserId => _currentUser?.UserID is int id ? new Guid(id, 0, 0, new byte[12]) : Guid.Empty;
-        // Note: your User model currently uses int UserID — adapt to Guid if you standardize on Guid.
+        // Return the GUID from the domain user (or Guid.Empty when not authenticated)
+        public Guid CurrentUserId => _currentUser?.UserID ?? Guid.Empty;
+
         public User? CurrentUser => _currentUser;
         public bool IsAuthenticated => _currentUser != null;
 
