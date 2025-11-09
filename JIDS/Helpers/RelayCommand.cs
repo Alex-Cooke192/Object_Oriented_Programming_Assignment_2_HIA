@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace JetInteriorApp.Helpers
+namespace JIDS.Helpers
 {
     public class RelayCommand : ICommand
     {

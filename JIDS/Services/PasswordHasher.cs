@@ -1,7 +1,7 @@
 ﻿using System;
 using BCrypt.Net;
 
-namespace JetInteriorApp.Services
+namespace JIDS.Services
 {
     /// <summary>
     /// Provides secure password hashing and verification using BCrypt.

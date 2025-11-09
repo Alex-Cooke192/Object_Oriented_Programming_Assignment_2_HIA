@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations; 
-using JetInteriorApp.Models; 
+using JIDS.Models; 
 
-namespace JetInteriorApp.Models
+namespace JIDS.Models
 {
     public class JetConfiguration
     {

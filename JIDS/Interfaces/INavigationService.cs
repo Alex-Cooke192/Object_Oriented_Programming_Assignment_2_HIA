@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace JetInteriorApp.Interfaces
+namespace JIDS.Interfaces
 {
     /// <summary>
     /// Small, testable navigation contract.

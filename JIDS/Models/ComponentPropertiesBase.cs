@@ -1,4 +1,4 @@
-namespace JetInteriorApp.Models
+namespace JIDS.Models
 {
     public abstract class ComponentPropertiesBase
     {

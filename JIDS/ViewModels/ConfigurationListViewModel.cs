@@ -5,8 +5,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using JetInteriorApp.Interfaces;
-using JetInteriorApp.Models;
+using JIDS.Interfaces;
+using JIDS.Models;
 
 namespace JIDS.ViewModels
 {

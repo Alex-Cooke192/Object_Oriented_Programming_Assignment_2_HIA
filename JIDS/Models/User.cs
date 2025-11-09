@@ -1,8 +1,8 @@
-using JetInteriorApp.Services;
+using JIDS.Services;
 using System;
 using System.Collections.Generic;
 
-namespace JetInteriorApp.Models
+namespace JIDS.Models
 {
     public class User
     {

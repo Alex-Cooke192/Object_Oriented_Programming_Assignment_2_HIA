@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace JetInteriorApp.Data
+namespace JIDS.Data
 {
     public class InteriorComponentDB
     {

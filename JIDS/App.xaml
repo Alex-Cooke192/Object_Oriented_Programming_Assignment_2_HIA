@@ -1,7 +1,7 @@
-﻿<Application x:Class="JetInteriorApp.App"
+﻿<Application x:Class="JIDS.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:JetInteriorApp">
+             xmlns:local="clr-namespace:JIDS">
     <Application.Resources>
          
     </Application.Resources>

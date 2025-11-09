@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace JetInteriorApp.Data
+namespace JIDS.Data
 {
     public class JetDbContextFactory : IDesignTimeDbContextFactory<JetDbContext>
     {

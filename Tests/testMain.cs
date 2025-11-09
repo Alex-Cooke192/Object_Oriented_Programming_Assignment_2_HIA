@@ -2,9 +2,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using JetInteriorApp.Data;
+using JIDS.Data;
 
-namespace JetInteriorApp.Tests
+namespace JIDS.Tests
 {
     public class TestMain
     {

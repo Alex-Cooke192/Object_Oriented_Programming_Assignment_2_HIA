@@ -1,11 +1,11 @@
-﻿using JetInteriorApp.Data;
+﻿using JIDS.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace JetInteriorApp.Interfaces
+namespace JIDS.Interfaces
 {
     public interface IAuthRepository
     {

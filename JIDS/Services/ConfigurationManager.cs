@@ -1,8 +1,8 @@
-using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces;
+using JIDS.Models;
+using JIDS.Interfaces;
 using System.Collections.Concurrent;
 
-namespace JetInteriorApp.Services.Configuration
+namespace JIDS.Services.Configuration
 {
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {

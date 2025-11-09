@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace JetInteriorDesign.Migrations
+namespace JIDS.Migrations
 {
     /// <inheritdoc />
     public partial class AddPasswordHashToUser : Migration

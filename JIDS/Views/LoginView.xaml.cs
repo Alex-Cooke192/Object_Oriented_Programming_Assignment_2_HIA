@@ -1,8 +1,8 @@
-﻿using JetInteriorApp.ViewModels;
+﻿using JIDS.ViewModels;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace JetInteriorApp.Views
+namespace JIDS.Views
 {
     public partial class LoginView : Page
     {
