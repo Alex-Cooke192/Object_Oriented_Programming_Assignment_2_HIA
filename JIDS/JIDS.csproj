@@ -16,7 +16,6 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.10" />
 	</ItemGroup>
 
-<<<<<<< HEAD
   <ItemGroup>
       <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
       <PackageReference Include="MahApps.Metro" Version="2.4.11" />
