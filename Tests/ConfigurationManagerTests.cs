@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using JetInteriorApp.Models;
-using JetInteriorApp.Services.Configuration;
-using JetInteriorApp.Interfaces;
+using JIDS.Models;
+using JIDS.Services.Configuration;
+using JIDS.Interfaces;
 using Moq;
 using Xunit;
 
