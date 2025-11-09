@@ -133,10 +133,13 @@ namespace JIDS.ViewModels
         {
             try
             {
+                // Determine final ConfigID up front so components can use it
+                var finalConfigId = _isNew ? Guid.NewGuid() : ConfigID;
+
                 // Build domain object
                 var config = new JetConfiguration
                 {
-                    ConfigID = _isNew ? Guid.NewGuid() : ConfigID,
+                    ConfigID = finalConfigId,
                     UserID = _session?.CurrentUser?.UserID ?? Guid.Empty,
                     Name = Name,
                     CabinDimensions = CabinDimensions,
@@ -147,7 +150,7 @@ namespace JIDS.ViewModels
                     InteriorComponents = InteriorComponents.Select(c => new InteriorComponent
                     {
                         ComponentID = c.ComponentID,
-                        ConfigID = configIdOrThis(c),
+                        ConfigID = finalConfigId,
                         Name = c.Name,
                         Type = c.Type,
                         Tier = c.Tier,
@@ -158,9 +161,6 @@ namespace JIDS.ViewModels
                     }).ToList()
                 };
 
-                // helper local to ensure each component has the correct ConfigID
-                Guid configIdOrThis(InteriorComponent c) => config.ConfigID;
-
                 if (_writer != null)
                 {
                     // If writer supports CreateConfigurationAsync for new
@@ -168,14 +168,7 @@ namespace JIDS.ViewModels
                     {
                         // Use CreateConfigurationAsync to create new config
                         var created = await _writer.CreateConfigurationAsync(config.Name ?? "New config", config);
-                        if (created != null)
-                        {
-                            StatusMessage = "Configuration created.";
-                        }
-                        else
-                        {
-                            StatusMessage = "Create failed.";
-                        }
+                        StatusMessage = created != null ? "Configuration created." : "Create failed.";
                     }
                     else
                     {
