@@ -3,11 +3,9 @@ using System.IO;
 using System.Windows;
 using JetInteriorApp.Data;
 using JetInteriorApp.Repositories;
-using JetInteriorApp.ViewModels;
-using JetInteriorApp.Views;
 using Microsoft.EntityFrameworkCore;
 
-namespace JetInteriorApp
+namespace JIDS
 {
     public partial class App : Application
     {
@@ -20,7 +18,7 @@ namespace JetInteriorApp
             string dbPath = Path.Combine(baseDirectory, "Data", "jetconfigs.db");
 
             // Ensure Data folder exists
-            Directory.CreateDirectory(Path.GetDirectoryName(dbPath));
+            Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 
             // Configure EF Core SQLite
             var options = new DbContextOptionsBuilder<JetDbContext>()
@@ -31,18 +29,21 @@ namespace JetInteriorApp
             var dbContext = new JetDbContext(options);
             dbContext.Database.EnsureCreated();
 
-            // Inject repository and ViewModel
+            // Register lightweight application services in Application resources
+            var navigationService = new JetInteriorApp.Services.NavigationService();
+            var userSession = new JetInteriorApp.Services.UserSessionService();
+
+            Application.Current.Resources["NavigationService"] = navigationService;
+            Application.Current.Resources["UserSessionService"] = userSession;
+            Application.Current.Resources["DbContext"] = dbContext;
+
+            // Register auth repository (stateless; doesn't require a logged-in user)
             var authRepository = new AuthRepository(dbContext);
-            var loginViewModel = new LoginViewModel(authRepository);
+            Application.Current.Resources["AuthRepository"] = authRepository;
 
-            // Launch Login Window
-            var loginView = new LoginView
-            {
-                DataContext = loginViewModel
-            };
-
-            loginView.Show();
+            // Show MainWindow as the root window. MainWindow will navigate to "Login" in its ctor.
+            var mainWindow = new MainWindow();
+            mainWindow.Show();
         }
     }
 }
-
