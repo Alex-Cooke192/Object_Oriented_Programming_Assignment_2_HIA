@@ -13,7 +13,6 @@
     <Folder Include="Data\" />
     <Folder Include="Repositories\" />
     <Folder Include="Tests\" />
-    <Folder Include="Views\" />
   </ItemGroup>
 
   <ItemGroup>

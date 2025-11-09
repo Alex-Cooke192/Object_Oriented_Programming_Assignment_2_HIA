@@ -1,0 +1,88 @@
+<UserControl x:Class="JIDS.Views.ConfigurationListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             MinWidth="600" MinHeight="400">
+
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Toolbar -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,0,8" >
+            <TextBox Width="280"
+                     Margin="0,0,8,0"
+                     VerticalAlignment="Center"
+                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" />
+
+            <Button Content="New" Width="80" Margin="0,0,8,0" Command="{Binding CreateCommand}" />
+            <Button Content="Refresh" Width="80" Margin="0,0,8,0" Command="{Binding RefreshCommand}" />
+            <Button Content="Logout" Width="80" Command="{Binding LogoutCommand}" />
+        </StackPanel>
+
+        <!-- DataGrid -->
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding FilteredConfigurations}"
+                  SelectedItem="{Binding SelectedConfiguration, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserSortColumns="True"
+                  CanUserReorderColumns="False"
+                  RowHeaderWidth="0"
+                  SelectionMode="Single"
+                  Margin="0,0,0,8">
+
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick"/>
+                </Style>
+            </DataGrid.RowStyle>
+
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="2*" />
+                <DataGridTextColumn Header="Seats" Binding="{Binding SeatingCapacity}" Width="Auto" />
+                <DataGridTextColumn Header="Cabin" Binding="{Binding CabinDimensions}" Width="2*" />
+                <DataGridTextColumn Header="Updated" Binding="{Binding UpdatedAt, StringFormat={}{0:yyyy-MM-dd HH:mm}}" Width="160" />
+                <DataGridTemplateColumn Header="Actions" Width="140">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                <Button Content="Edit"
+                                        Margin="2,0"
+                                        Padding="6,2"
+                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                                <Button Content="Delete"
+                                        Margin="2,0"
+                                        Padding="6,2"
+                                        Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+
+            <DataGrid.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Edit" Command="{Binding PlacementTarget.SelectedItem, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={x:Null}}" Visibility="Collapsed"/>
+                </ContextMenu>
+            </DataGrid.ContextMenu>
+        </DataGrid>
+
+        <!-- Footer: optional details for selected item -->
+        <Border Grid.Row="2" Padding="8" BorderThickness="1,0,0,0" BorderBrush="#FFE0E0E0">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="Selected: " FontWeight="SemiBold" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding SelectedConfiguration.Name}" />
+                <TextBlock Text="Seats: " FontWeight="SemiBold" />
+                <TextBlock Text="{Binding SelectedConfiguration.SeatingCapacity}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>
