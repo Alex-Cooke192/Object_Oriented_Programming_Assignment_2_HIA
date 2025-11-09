@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JetInteriorApp.Helpers;
+using JIDS.Helpers;
 using Xunit;
 
 public class RelayCommandTests

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JetInteriorApp.Services;
+using JIDS.Services;
 using Xunit;
 
 public class PasswordHasherTests

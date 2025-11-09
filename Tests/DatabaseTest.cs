@@ -1,8 +1,8 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using JetInteriorApp.Models;
-using JetInteriorApp.Data;
+using JIDS.Models;
+using JIDS.Data;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 

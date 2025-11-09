@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JetInteriorApp.Data;
-using JetInteriorApp.Models;
-using JetInteriorApp.Repositories;
-using JetInteriorApp.Services;
+using JIDS.Data;
+using JIDS.Models;
+using JIDS.Repositories;
+using JIDS.Services;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 

@@ -1,8 +1,8 @@
-﻿using JetInteriorApp.Data;
-using JetInteriorApp.Helpers;
-using JetInteriorApp.Interfaces;
-using JetInteriorApp.Models;
-using JetInteriorApp.ViewModels;
+﻿using JIDS.Data;
+using JIDS.Helpers;
+using JIDS.Interfaces;
+using JIDS.Models;
+using JIDS.ViewModels;
 using Moq;
 using System;
 using System.Threading.Tasks;
