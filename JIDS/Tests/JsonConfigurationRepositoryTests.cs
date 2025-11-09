@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using JetInteriorApp.Data;
-using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces;
+using JIDS.Data;
+using JIDS.Models;
+using JIDS.Interfaces;
 
 public class JsonConfigurationRepositoryTests
 {

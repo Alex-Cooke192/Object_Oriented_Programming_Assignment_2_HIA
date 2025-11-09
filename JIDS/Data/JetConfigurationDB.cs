@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using JetInteriorApp.Models; 
 
 
-namespace JetInteriorApp.Data
+namespace JIDS.Data
 {
     public class JetConfigurationDB
     {

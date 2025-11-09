@@ -1,6 +1,6 @@
 using System.Text.Json;
-using JetInteriorApp.Models;
-using JetInteriorApp.Interfaces;
+using JIDS.Models;
+using JIDS.Interfaces;
 using System.Collections.Concurrent;
 using Microsoft.EntityFrameworkCore;
 

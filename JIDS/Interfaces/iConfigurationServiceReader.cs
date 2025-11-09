@@ -1,6 +1,6 @@
-using JetInteriorApp.Models;
+using JIDS.Models;
 
-namespace JetInteriorApp.Interfaces
+namespace JIDS.Interfaces
 {
     /// <summary>
     /// Interface for accessing and persisting configuration data.

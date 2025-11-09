@@ -1,8 +1,8 @@
-using JetInteriorApp.Interfaces;
-using JetInteriorApp.Models; 
+using JIDS.Interfaces;
+using JIDS.Models; 
 using System.Threading.Tasks;
 
-namespace JetInteriorApp.Interfaces
+namespace JIDS.Interfaces
 {
     public interface IConfigurationServiceWriter
     {

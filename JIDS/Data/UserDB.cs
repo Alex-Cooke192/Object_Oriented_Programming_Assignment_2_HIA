@@ -1,4 +1,4 @@
-namespace JetInteriorApp.Data;
+namespace JIDS.Data;
 using System.ComponentModel.DataAnnotations;
 
 public class UserDB
