@@ -1,349 +1,245 @@
-﻿using JetInteriorApp.Helpers;
-using JetInteriorApp.Models;
-using JetInteriorApp.Services.Configuration;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using JetInteriorApp.Interfaces;
+using JetInteriorApp.Models;
 
-namespace JetInteriorApp.ViewModels
+namespace JIDS.ViewModels
 {
-    public class JetConfigurationListVM : INotifyPropertyChanged
+    /// <summary>
+    /// ViewModel for the Configuration List screen.
+    /// - Displays configurations for the current user (loads from IConfigurationRepository)
+    /// - Opens editor to create or edit
+    /// - Deletes configuration using IConfigurationServiceWriter
+    /// - Supports searching and logout
+    /// </summary>
+    public class ConfigurationListViewModel : INotifyPropertyChanged
     {
-        private readonly ConfigurationManager _manager;
+        private readonly IConfigurationRepository _repository;
+        private readonly IConfigurationServiceWriter _writer;
+        private readonly INavigationService _navigationService;
+        private readonly IUserSessionService _userSession;
 
-        public ObservableCollection<JetConfigurationModel> Configurations { get; set; }
-            = new ObservableCollection<JetConfigurationModel>();
+        public ObservableCollection<JetConfiguration> Configurations { get; }
+        public ObservableCollection<JetConfiguration> FilteredConfigurations { get; }
 
-        private JetConfigurationModel? _selectedConfiguration;
-        public JetConfigurationModel? SelectedConfiguration
+        private JetConfiguration? _selectedConfiguration;
+        public JetConfiguration? SelectedConfiguration
         {
             get => _selectedConfiguration;
             set { _selectedConfiguration = value; OnPropertyChanged(); }
         }
 
-        public string StatusText { get; set; } = "";
-
-        public ICommand RefreshCommand { get; }
-        public ICommand SaveAllCommand { get; }
-        public ICommand NewConfigCommand { get; }
-        public ICommand CloneConfigCommand { get; }
-        public ICommand DeleteConfigCommand { get; }
-        public ICommand AddComponentCommand { get; }
-        public ICommand RemoveComponentCommand { get; }
-
-        public JetConfigurationListVM(ConfigurationManager manager)
+        private string? _searchQuery;
+        public string? SearchQuery
         {
-            _manager = manager;
-
-            RefreshCommand = new RelayCommand(async _ => await Refresh());
-            SaveAllCommand = new RelayCommand(async _ => await SaveAll());
-            NewConfigCommand = new RelayCommand(async _ => await NewConfig());
-            CloneConfigCommand = new RelayCommand(async _ => await CloneConfig());
-            DeleteConfigCommand = new RelayCommand(async _ => await DeleteConfig());
-            AddComponentCommand = new RelayCommand(_ => AddComponent());
-            RemoveComponentCommand = new RelayCommand(_ => RemoveComponent());
-
-            _ = Refresh();
-        }
-
-        private async Task Refresh()
-        {
-            StatusText = "Loading...";
-            OnPropertyChanged(nameof(StatusText));
-
-            var configs = await _manager.InitializeAsync();
-
-            Configurations.Clear();
-            foreach (var c in configs.Select(ToVM))
-                Configurations.Add(c);
-
-            StatusText = "Loaded.";
-            OnPropertyChanged(nameof(StatusText));
-        }
-
-        private async Task NewConfig()
-        {
-            var baseLayout = new JetConfiguration
+            get => _searchQuery;
+            set
             {
-                CabinDimensions = "10x3x2.5m",
-                SeatingCapacity = 6,
-                Version = 1,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-            };
-
-            var created = await _manager.CreateConfigurationAsync("New Config", baseLayout);
-            Configurations.Add(ToVM(created));
-        }
-
-        private async Task CloneConfig()
-        {
-            if (SelectedConfiguration == null) return;
-
-            var cloned = await _manager.CloneConfigurationAsync(SelectedConfiguration.ConfigID);
-            if (cloned != null)
-                Configurations.Add(ToVM(cloned));
-        }
-
-        private async Task DeleteConfig()
-        {
-            if (SelectedConfiguration == null) return;
-
-            await _manager.DeleteConfigurationAsync(SelectedConfiguration.ConfigID);
-            Configurations.Remove(SelectedConfiguration);
-            SelectedConfiguration = null;
-        }
-
-        private async Task SaveAll()
-        {
-            StatusText = "Saving...";
-            OnPropertyChanged(nameof(StatusText));
-
-            // Converts ViewModels back to domain models before saving
-            var domainConfigs = Configurations.Select(ToDomain).ToList();
-            await _manager.SaveAllChangesAsync(domainConfigs);
-
-            StatusText = "Saved";
-            OnPropertyChanged(nameof(StatusText));
-        }
-
-        private void AddComponent()
-        {
-            if (SelectedConfiguration == null) return;
-
-            SelectedConfiguration.Components.Add(new ComponentModel
-            {
-                ComponentID = Guid.NewGuid(),
-                ConfigID = SelectedConfiguration.ConfigID,
-                Name = "New Component",
-                Type = "Seat",
-                Tier = "Economy",
-                Material = "Fabric",
-                X = 0,
-                Y = 0,
-                CreatedAt = DateTime.UtcNow,
-                Position = "{\"x\":0,\"y\":0}",
-                PropertiesJson = "{}"
-            });
-        }
-
-        private void RemoveComponent()
-        {
-            if (SelectedConfiguration == null) return;
-            if (SelectedConfiguration.Components.Any())
-                SelectedConfiguration.Components.RemoveAt(SelectedConfiguration.Components.Count - 1);
-        }
-
-        // Converts a domain JetConfiguration to a ViewModel object
-        private JetConfigurationModel ToVM(JetConfiguration config)
-        {
-            var vm = new JetConfigurationModel
-            {
-                ConfigID = config.ConfigID,
-                UserID = config.UserID,
-                Name = config.Name,
-                CabinDimensions = config.CabinDimensions ?? "",
-                SeatingCapacity = config.SeatingCapacity,
-                CreatedAt = config.CreatedAt,
-                UpdatedAt = config.UpdatedAt,
-                Version = config.Version
-            };
-
-            if (config.InteriorComponents != null)
-            {
-                foreach (var ic in config.InteriorComponents)
-                {
-                    vm.Components.Add(new ComponentModel
-                    {
-                        ComponentID = ic.ComponentID,
-                        ConfigID = config.ConfigID,
-                        Name = ic.Name,
-                        Type = ic.Type,
-                        Tier = ic.Tier,
-                        Material = ic.Material,
-                        CreatedAt = ic.CreatedAt,
-                        Position = ic.Position ?? "{\"x\":0,\"y\":0}",
-                        PropertiesJson = ic.PropertiesJson ?? "{}"
-                    });
-                }
+                if (_searchQuery == value) return;
+                _searchQuery = value;
+                OnPropertyChanged();
+                ApplySearchFilter();
             }
-
-            return vm;
         }
 
-        // Converts ViewModel data back to domain model so the repository can persist changes
-        private JetConfiguration ToDomain(JetConfigurationModel vm)
+        public ICommand CreateCommand { get; }
+        public ICommand EditCommand { get; }
+        public ICommand DeleteCommand { get; }
+        public ICommand LogoutCommand { get; }
+        public ICommand RefreshCommand { get; }
+
+        public ConfigurationListViewModel(
+            IConfigurationRepository repository,
+            IConfigurationServiceWriter writer,
+            INavigationService navigationService,
+            IUserSessionService userSession)
         {
-            return new JetConfiguration
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _writer = writer ?? throw new ArgumentNullException(nameof(writer));
+            _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
+            _userSession = userSession ?? throw new ArgumentNullException(nameof(userSession));
+
+            Configurations = new ObservableCollection<JetConfiguration>();
+            FilteredConfigurations = new ObservableCollection<JetConfiguration>();
+
+            CreateCommand = new RelayCommand(() => _navigationService.NavigateTo("ConfigurationEditor"));
+            EditCommand = new RelayCommand<JetConfiguration?>(config =>
             {
-                ConfigID = vm.ConfigID,
-                UserID = vm.UserID,
-                Name = vm.Name,
-                CabinDimensions = vm.CabinDimensions,
-                SeatingCapacity = vm.SeatingCapacity,
-                CreatedAt = vm.CreatedAt,
-                UpdatedAt = DateTime.UtcNow,
-                Version = vm.Version,
-                InteriorComponents = vm.Components.Select(c => new InteriorComponent
-                {
-                    ComponentID = c.ComponentID,
-                    ConfigID = vm.ConfigID,
-                    Name = c.Name,
-                    Type = c.Type,
-                    Tier = c.Tier,
-                    Material = c.Material,
-                    Position = c.Position,
-                    CreatedAt = c.CreatedAt,
-                    PropertiesJson = c.PropertiesJson
-                }).ToList()
-            };
+                if (config != null) _navigationService.NavigateTo("ConfigurationEditor", config);
+            }, config => config is not null);
+
+            DeleteCommand = new RelayCommand<JetConfiguration?>(async config => await DeleteAsync(config), config => config is not null);
+            LogoutCommand = new RelayCommand(() =>
+            {
+                _userSession.Clear();
+                _navigationService.NavigateTo("Login");
+            });
+
+            RefreshCommand = new RelayCommand(async () => await LoadConfigurationsAsync());
+
+            // subscribe to session changes so list reloads when the user switches or logs in/out
+            _userSession.SessionChanged += () => { _ = LoadConfigurationsAsync(); };
+
+            // initial load
+            _ = LoadConfigurationsAsync();
         }
 
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? n = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    public class JetConfigurationModel : INotifyPropertyChanged
-    {
-        private string _name = "";
-        private string _cabinDimensions = "";
-        private int _seatingCapacity;
-        private int? _version;
-
-        public Guid ConfigID { get; set; }
-        public Guid UserID { get; set; }
-
-        public string Name
-        {
-            get => _name;
-            set { _name = value; OnPropertyChanged(); }
-        }
-
-        public string CabinDimensions
-        {
-            get => _cabinDimensions;
-            set { _cabinDimensions = value; OnPropertyChanged(); }
-        }
-
-        public int SeatingCapacity
-        {
-            get => _seatingCapacity;
-            set { _seatingCapacity = value; OnPropertyChanged(); }
-        }
-
-        public int? Version
-        {
-            get => _version;
-            set { _version = value; OnPropertyChanged(); }
-        }
-
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
-
-        public ObservableCollection<ComponentModel> Components { get; set; }
-            = new ObservableCollection<ComponentModel>();
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? n = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
-    }
-
-    public class ComponentModel : INotifyPropertyChanged
-    {
-        private string _name = "";
-        private string _type = "";
-        private string _tier = "";
-        private string _material = "";
-        private string _position = "{}";
-        private string _propertiesJson = "{}";
-        private double _x;
-        private double _y;
-
-        public Guid ComponentID { get; set; }
-        public Guid ConfigID { get; set; }
-        public DateTime CreatedAt { get; set; }
-
-        public string Name
-        {
-            get => _name;
-            set { _name = value; OnPropertyChanged(); }
-        }
-
-        public string Type
-        {
-            get => _type;
-            set { _type = value; OnPropertyChanged(); }
-        }
-
-        public string Tier
-        {
-            get => _tier;
-            set { _tier = value; OnPropertyChanged(); }
-        }
-
-        public string Material
-        {
-            get => _material;
-            set { _material = value; OnPropertyChanged(); }
-        }
-
-        public string Position
-        {
-            get => _position;
-            set { _position = value; TryParsePosition(); OnPropertyChanged(); }
-        }
-
-        public string PropertiesJson
-        {
-            get => _propertiesJson;
-            set { _propertiesJson = value; OnPropertyChanged(); }
-        }
-
-        public double X
-        {
-            get => _x;
-            set { _x = value; UpdatePositionJson(); OnPropertyChanged(); }
-        }
-
-        public double Y
-        {
-            get => _y;
-            set { _y = value; UpdatePositionJson(); OnPropertyChanged(); }
-        }
-
-        private void TryParsePosition()
+        private async Task LoadConfigurationsAsync()
         {
             try
             {
-                using var doc = JsonDocument.Parse(_position);
-                if (doc.RootElement.TryGetProperty("x", out var px))
-                    _x = px.GetDouble();
-                if (doc.RootElement.TryGetProperty("y", out var py))
-                    _y = py.GetDouble();
+                var configs = await _repository.LoadAllAsync();
+                Configurations.Clear();
+                foreach (var c in configs.OrderBy(c => c.Name, StringComparer.OrdinalIgnoreCase))
+                    Configurations.Add(c);
+
+                ApplySearchFilter();
             }
-            catch
+            catch (Exception ex)
             {
-                _x = 0;
-                _y = 0;
+                // keep ViewModel UI-friendly; logging can be added later
+                Console.WriteLine($"LoadConfigurationsAsync failed: {ex.Message}");
             }
-            OnPropertyChanged(nameof(X));
-            OnPropertyChanged(nameof(Y));
         }
 
-        private void UpdatePositionJson()
+        private async Task DeleteAsync(JetConfiguration? config)
         {
-            _position = $"{{\"x\":{_x},\"y\":{_y}}}";
-            OnPropertyChanged(nameof(Position));
+            if (config == null) return;
+
+            try
+            {
+                var success = await _writer.DeleteConfigurationAsync(config.ConfigID);
+                if (success)
+                {
+                    Configurations.Remove(config);
+                    ApplySearchFilter();
+                }
+                else
+                {
+                    Console.WriteLine($"Delete failed for {config.ConfigID}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DeleteAsync failed: {ex.Message}");
+            }
         }
 
+        private void ApplySearchFilter()
+        {
+            FilteredConfigurations.Clear();
+
+            var query = SearchQuery?.Trim();
+            if (string.IsNullOrEmpty(query))
+            {
+                foreach (var c in Configurations) FilteredConfigurations.Add(c);
+                return;
+            }
+
+            foreach (var c in Configurations)
+            {
+                if (!string.IsNullOrEmpty(c.Name) &&
+                    c.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    FilteredConfigurations.Add(c);
+                }
+            }
+        }
+
+        #region INotifyPropertyChanged
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected void OnPropertyChanged([CallerMemberName] string? n = null)
-            => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(n));
+        protected void OnPropertyChanged([CallerMemberName] string? name = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+        #endregion
+
+        #region Minimal RelayCommand implementations (self-contained)
+        // Included so the ViewModel is copy-paste ready even if the project does not expose a command helper.
+        private class RelayCommand : ICommand
+        {
+            private readonly Action _execute;
+            private readonly Func<bool>? _canExecute;
+
+            public RelayCommand(Action execute, Func<bool>? canExecute = null)
+            {
+                _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+                _canExecute = canExecute;
+            }
+
+            public bool CanExecute(object? parameter) => _canExecute?.Invoke() ?? true;
+            public void Execute(object? parameter) => _execute();
+            public event EventHandler? CanExecuteChanged;
+            public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private class RelayCommand<T> : ICommand
+        {
+            private readonly Action<T?> _execute;
+            private readonly Predicate<T?>? _canExecute;
+
+            public RelayCommand(Action<T?> execute, Predicate<T?>? canExecute = null)
+            {
+                _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+                _canExecute = canExecute;
+            }
+
+            public bool CanExecute(object? parameter)
+            {
+                if (_canExecute == null) return true;
+                return parameter is T t ? _canExecute(t) : _canExecute(default);
+            }
+
+            public void Execute(object? parameter)
+            {
+                if (parameter is T t) _execute(t);
+                else _execute(default);
+            }
+
+            public event EventHandler? CanExecuteChanged;
+            public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private class RelayCommandAsync<T> : ICommand
+        {
+            private readonly Func<T?, Task> _executeAsync;
+            private readonly Predicate<T?>? _canExecute;
+            private bool _isExecuting;
+
+            public RelayCommandAsync(Func<T?, Task> executeAsync, Predicate<T?>? canExecute = null)
+            {
+                _executeAsync = executeAsync ?? throw new ArgumentNullException(nameof(executeAsync));
+                _canExecute = canExecute;
+            }
+
+            public bool CanExecute(object? parameter)
+            {
+                if (_isExecuting) return false;
+                if (_canExecute == null) return true;
+                return parameter is T t ? _canExecute(t) : _canExecute(default);
+            }
+
+            public async void Execute(object? parameter)
+            {
+                _isExecuting = true;
+                RaiseCanExecuteChanged();
+                try
+                {
+                    await _executeAsync(parameter is T t ? t : default);
+                }
+                finally
+                {
+                    _isExecuting = false;
+                    RaiseCanExecuteChanged();
+                }
+            }
+
+            public event EventHandler? CanExecuteChanged;
+            public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+        }
+        #endregion
     }
 }

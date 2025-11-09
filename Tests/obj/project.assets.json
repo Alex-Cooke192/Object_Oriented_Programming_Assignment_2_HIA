@@ -1043,7 +1043,11 @@
         "dependencies": {
           "BCrypt.Net-Next": "4.0.3",
           "Microsoft.EntityFrameworkCore": "9.0.10",
-          "Microsoft.EntityFrameworkCore.Sqlite": "9.0.10"
+          "Microsoft.EntityFrameworkCore.InMemory": "8.0.0",
+          "Microsoft.EntityFrameworkCore.Sqlite": "9.0.10",
+          "Moq": "4.20.72",
+          "xunit": "2.9.3",
+          "xunit.runner.visualstudio": "2.4.5"
         },
         "compile": {
           "bin/placeholder/JIDS.dll": {}
@@ -2445,23 +2449,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\alexa\\.nuget\\packages\\": {},
+    "C:\\Users\\isobe\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\alexa\\OneDrive\\Documents\\B&FC Year 2\\Object-Oriented Programming\\Assignment 2\\Repo\\03.11.2\\Tests\\JetInteriorApp.Tests.csproj",
+      "projectUniqueName": "C:\\Users\\isobe\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA\\Tests\\JetInteriorApp.Tests.csproj",
       "projectName": "JetInteriorApp.Tests",
-      "projectPath": "C:\\Users\\alexa\\OneDrive\\Documents\\B&FC Year 2\\Object-Oriented Programming\\Assignment 2\\Repo\\03.11.2\\Tests\\JetInteriorApp.Tests.csproj",
-      "packagesPath": "C:\\Users\\alexa\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\alexa\\OneDrive\\Documents\\B&FC Year 2\\Object-Oriented Programming\\Assignment 2\\Repo\\03.11.2\\Tests\\obj\\",
+      "projectPath": "C:\\Users\\isobe\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA\\Tests\\JetInteriorApp.Tests.csproj",
+      "packagesPath": "C:\\Users\\isobe\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\isobe\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA\\Tests\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\alexa\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\isobe\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -2476,8 +2480,8 @@
         "net8.0-windows7.0": {
           "targetAlias": "net8.0-windows",
           "projectReferences": {
-            "C:\\Users\\alexa\\OneDrive\\Documents\\B&FC Year 2\\Object-Oriented Programming\\Assignment 2\\Repo\\03.11.2\\JIDS\\JIDS.csproj": {
-              "projectPath": "C:\\Users\\alexa\\OneDrive\\Documents\\B&FC Year 2\\Object-Oriented Programming\\Assignment 2\\Repo\\03.11.2\\JIDS\\JIDS.csproj"
+            "C:\\Users\\isobe\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA\\JIDS\\JIDS.csproj": {
+              "projectPath": "C:\\Users\\isobe\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA\\JIDS\\JIDS.csproj"
             }
           }
         }
@@ -2534,20 +2538,6 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
-        "downloadDependencies": [
-          {
-            "name": "Microsoft.AspNetCore.App.Ref",
-            "version": "[8.0.21, 8.0.21]"
-          },
-          {
-            "name": "Microsoft.NETCore.App.Ref",
-            "version": "[8.0.21, 8.0.21]"
-          },
-          {
-            "name": "Microsoft.WindowsDesktop.App.Ref",
-            "version": "[8.0.21, 8.0.21]"
-          }
-        ],
         "frameworkReferences": {
           "Microsoft.NETCore.App": {
             "privateAssets": "all"
