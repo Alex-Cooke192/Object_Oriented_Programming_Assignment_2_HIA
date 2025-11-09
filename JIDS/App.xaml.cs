@@ -4,8 +4,9 @@ using System.Windows;
 using JetInteriorApp.Data;
 using JetInteriorApp.Repositories;
 using Microsoft.EntityFrameworkCore;
+using JIDS;
 
-namespace JIDS
+namespace JetInteriorApp
 {
     public partial class App : Application
     {
@@ -18,7 +19,9 @@ namespace JIDS
             string dbPath = Path.Combine(baseDirectory, "Data", "jetconfigs.db");
 
             // Ensure Data folder exists
-            Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
+            var dir = Path.GetDirectoryName(dbPath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
 
             // Configure EF Core SQLite
             var options = new DbContextOptionsBuilder<JetDbContext>()
@@ -41,7 +44,7 @@ namespace JIDS
             var authRepository = new AuthRepository(dbContext);
             Application.Current.Resources["AuthRepository"] = authRepository;
 
-            // Show MainWindow as the root window. MainWindow will navigate to "Login" in its ctor.
+            // Show MainWindow as the root window..
             var mainWindow = new MainWindow();
             mainWindow.Show();
         }
