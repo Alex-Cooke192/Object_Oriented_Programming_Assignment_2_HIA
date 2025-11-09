@@ -1,41 +1,48 @@
+using JetInteriorApp.Services;
 using System;
-using BCrypt.Net;
+using System.Collections.Generic;
 
-namespace JIDS.Models
+namespace JetInteriorApp.Models
 {
     public class User
     {
-        // Basic user fields
-        public int UserID { get; set; } // You can set manually for testing
-        public string Username { get; set; }
-        public string? Email { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public Guid UserID { get; private set; }
+        public string Username { get; private set; }
+        public string PasswordHash { get; private set; }
+        public string Email { get; private set; }
+        public DateTime CreatedAt { get; private set; }
+        public ICollection<JetConfiguration> Configurations { get; private set; }
 
-        // Password storage (hashed)
-        public string PasswordHash { get; set; }
-
-        // Method to set password securely
-        public void SetPassword(string password)
+        // Private constructor to force use of factory methods
+        private User(Guid userID, string username, string email, string passwordHash, DateTime createdAt)
         {
-            if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Password cannot be empty");
-
-            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
+            UserID = userID;
+            Username = username;
+            PasswordHash = passwordHash;
+            Email = email;
+            CreatedAt = createdAt;
+            Configurations = new List<JetConfiguration>();
         }
 
-        // Method to verify password
-        public bool VerifyPassword(string password)
+        // Factory method for creating a NEW user
+        public static User CreateNew(string username, string email, string plainPassword)
         {
-            if (string.IsNullOrEmpty(PasswordHash))
-                return false;
+            if (string.IsNullOrWhiteSpace(username))
+                throw new ArgumentException("Username cannot be empty.");
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be empty.");
+            if (string.IsNullOrWhiteSpace(plainPassword))
+                throw new ArgumentException("Password cannot be empty.");
 
-            return BCrypt.Net.BCrypt.Verify(password, PasswordHash);
+            var hashedPassword = PasswordHasher.HashPassword(plainPassword);
+            return new User(Guid.NewGuid(), username, email, hashedPassword, DateTime.Now);
         }
 
-        // For debugging/testing purposes
-        public override string ToString()
+        // Factory method for loading an EXISTING user (from DB)
+        public static User FromExisting(Guid userID, string username, string email, string passwordHash, DateTime createdAt)
         {
-            return $"UserID: {UserID}, Username: {Username}, Email: {Email}, CreatedAt: {CreatedAt}";
+            return new User(userID, username, email, passwordHash, createdAt);
         }
     }
 }
+

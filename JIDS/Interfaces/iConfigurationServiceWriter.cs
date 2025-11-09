@@ -43,6 +43,6 @@ namespace JIDS.Interfaces
         /// Saves all pending changes to the underlying data store.
         /// </summary>
         /// <returns>True if the save was successful; otherwise, false.</returns>
-        Task<bool> SaveAllChangesAsync();
+        Task<bool> SaveAllChangesAsync(List<JetConfiguration> configs);
     }
 }

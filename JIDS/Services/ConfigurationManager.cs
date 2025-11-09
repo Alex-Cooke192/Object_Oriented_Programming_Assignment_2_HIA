@@ -1,19 +1,13 @@
-using System.Text.Json;
-using JIDS.Models;
-using JIDS.Interfaces;
+using JetInteriorApp.Models;
+using JetInteriorApp.Interfaces;
 using System.Collections.Concurrent;
-using Microsoft.EntityFrameworkCore;
 
 namespace JetInteriorApp.Services.Configuration
 {
-    /// <summary>
-    /// Service responsible for managing in-memory configurations
-    /// and synchronizing with the persistent repository layer.
-    /// </summary>
     public class ConfigurationManager : IConfigurationServiceReader, IConfigurationServiceWriter
     {
         private readonly IConfigurationRepository _repository;
-        private readonly ConcurrentDictionary<Guid, JetConfiguration> _inMemoryConfigs;
+        private ConcurrentDictionary<Guid, JetConfiguration> _inMemoryConfigs;
         private readonly Guid _userId;
 
         public ConfigurationManager(IConfigurationRepository repository, Guid userId)
@@ -23,32 +17,21 @@ namespace JetInteriorApp.Services.Configuration
             _inMemoryConfigs = new ConcurrentDictionary<Guid, JetConfiguration>();
         }
 
-        /// <summary>
-        /// Loads all configurations from the repository into memory.
-        /// </summary>
-        public async Task InitializeAsync()
+        public async Task<List<JetConfiguration>> InitializeAsync()
         {
             var configs = await _repository.LoadAllAsync();
-            _inMemoryConfigs.Clear();
-
-            foreach (var config in configs)
-            {
-                _inMemoryConfigs[config.ConfigID] = config;
-            }
+            _inMemoryConfigs = new ConcurrentDictionary<Guid, JetConfiguration>(
+                configs.ToDictionary(c => c.ConfigID)
+            );
+            return configs;
         }
 
-        /// <summary>
-        /// Retrieves a configuration from memory by ID.
-        /// </summary>
         public JetConfiguration? GetConfiguration(Guid id)
         {
             _inMemoryConfigs.TryGetValue(id, out var config);
             return config;
         }
 
-        /// <summary>
-        /// Creates a new configuration and saves it to the repository.
-        /// </summary>
         public async Task<JetConfiguration> CreateConfigurationAsync(string name, JetConfiguration baseLayout)
         {
             var newConfig = new JetConfiguration
@@ -64,7 +47,7 @@ namespace JetInteriorApp.Services.Configuration
                 InteriorComponents = baseLayout.InteriorComponents?.Select(c => new InteriorComponent
                 {
                     ComponentID = Guid.NewGuid(),
-                    ConfigID = Guid.Empty, // will be set on save
+                    ConfigID = Guid.NewGuid(), // will be replaced after creation
                     Name = c.Name,
                     Type = c.Type,
                     Tier = c.Tier,
@@ -75,25 +58,21 @@ namespace JetInteriorApp.Services.Configuration
                 }).ToList() ?? new List<InteriorComponent>()
             };
 
+            // Fix component ConfigID to the newly created config
+            foreach (var ic in newConfig.InteriorComponents)
+                ic.ConfigID = newConfig.ConfigID;
+
             var success = await _repository.SaveConfigAsync(newConfig);
-            if (success)
-            {
-                _inMemoryConfigs[newConfig.ConfigID] = newConfig;
-            }
+            if (success) _inMemoryConfigs[newConfig.ConfigID] = newConfig;
 
             return newConfig;
         }
 
-        /// <summary>
-        /// Clones an existing configuration for the same user.
-        /// </summary>
         public async Task<JetConfiguration?> CloneConfigurationAsync(Guid configId)
         {
-            // 1. Ensure the original configuration exists in memory
             if (!_inMemoryConfigs.TryGetValue(configId, out var original))
                 return null;
 
-            // 2. Create a new JetConfiguration object
             var clone = new JetConfiguration
             {
                 ConfigID = Guid.NewGuid(),
@@ -103,61 +82,56 @@ namespace JetInteriorApp.Services.Configuration
                 SeatingCapacity = original.SeatingCapacity,
                 Version = (original.Version ?? 0) + 1,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = DateTime.UtcNow,
+                InteriorComponents = original.InteriorComponents?
+                    .Select(c => new InteriorComponent
+                    {
+                        ComponentID = Guid.NewGuid(),
+                        ConfigID = Guid.Empty, // fix after assignment
+                        Name = c.Name,
+                        Type = c.Type,
+                        Tier = c.Tier,
+                        Material = c.Material,
+                        Position = c.Position,
+                        CreatedAt = DateTime.UtcNow,
+                        PropertiesJson = c.PropertiesJson
+                    })
+                    .ToList() ?? new List<InteriorComponent>()
             };
 
-            // 3. Clone each interior component with a new ComponentID and correct ConfigID reference
-            clone.InteriorComponents = original.InteriorComponents?
-                .Select(c => new InteriorComponent
-                {
-                    ComponentID = Guid.NewGuid(),
-                    ConfigID = clone.ConfigID,
-                    Name = c.Name,
-                    Type = c.Type,
-                    Tier = c.Tier,
-                    Material = c.Material,
-                    Position = c.Position,
-                    CreatedAt = DateTime.UtcNow,
-                    PropertiesJson = c.PropertiesJson
-                })
-                .ToList() ?? new List<InteriorComponent>();
+            foreach (var ic in clone.InteriorComponents)
+                ic.ConfigID = clone.ConfigID;
 
-            // 4. Save the cloned configuration to the repository
             var success = await _repository.SaveConfigAsync(clone);
 
-            // 5. If successful, cache in memory and return the clone
             if (success)
             {
                 _inMemoryConfigs[clone.ConfigID] = clone;
                 return clone;
             }
 
-            // 6. Return null if persistence failed
             return null;
         }
 
-
-        /// <summary>
-        /// Deletes a configuration from memory and the repository.
-        /// </summary>
         public async Task<bool> DeleteConfigurationAsync(Guid id)
         {
             if (!_inMemoryConfigs.TryRemove(id, out _))
                 return false;
 
-            // After removal, persist updated list
-            return await SaveAllChangesAsync();
+            var updatedConfigs = _inMemoryConfigs.Values.ToList();
+            return await SaveAllChangesAsync(updatedConfigs);
         }
 
-        /// <summary>
-        /// Persists all in-memory configurations to the repository.
-        /// </summary>
-        public async Task<bool> SaveAllChangesAsync()
+        public async Task<bool> SaveAllChangesAsync(List<JetConfiguration> configs)
         {
             try
             {
-                var configs = _inMemoryConfigs.Values.ToList();
                 await _repository.SaveAllAsync(configs);
+
+                _inMemoryConfigs = new ConcurrentDictionary<Guid, JetConfiguration>(
+                    configs.ToDictionary(c => c.ConfigID)
+                );
+
                 return true;
             }
             catch (Exception ex)
@@ -168,3 +142,4 @@ namespace JetInteriorApp.Services.Configuration
         }
     }
 }
+
