@@ -1,9 +1,9 @@
 ﻿using System;
 using System.ComponentModel;
-using JetInteriorApp.Interfaces;
-using JetInteriorApp.Models;
+using JIDS.Interfaces;
+using JIDS.Models;
 
-namespace JetInteriorApp.Services
+namespace JIDS.Services
 {
     /// <summary>
     /// Simple in-memory session. Exposes events for UI to react.
