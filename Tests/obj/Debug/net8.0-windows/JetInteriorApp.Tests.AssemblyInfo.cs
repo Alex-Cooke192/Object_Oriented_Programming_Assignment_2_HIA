@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("JetInteriorApp.Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bab52f0ed4c18f5e857b157a5165908617bbb359")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3e86c266920628b59ab5c01e382a935a0f06ed7f")]
 [assembly: System.Reflection.AssemblyProductAttribute("JetInteriorApp.Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("JetInteriorApp.Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
