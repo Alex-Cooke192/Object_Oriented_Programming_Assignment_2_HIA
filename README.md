@@ -41,7 +41,10 @@ git clone https://github.com/Alex-Cooke192/Object_Oriented_Programming_Assignmen
 ## Dependencies
 - .NET 6 or later (https://dotnet.microsoft.com/)
 - MahApps.Metro (https://github.com/MahApps/MahApps.Metro)
-- (add rest of dependencies here)
+- BCrypt.Net-Next (https://www.nuget.org/packages/BCrypt.Net-Next/)
+- Microsoft.EntityFrameworkCore (https://www.nuget.org/packages/Microsoft.EntityFrameworkCore/)
+- Microsoft.EntityFrameworkCore.Sqlite (https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Sqlite/)
+- Microsoft.EntityFrameworkCore.Design (https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Design/)
 
 ## Contributors
 - Isobel Pritchard: UI and ViewModel Development
