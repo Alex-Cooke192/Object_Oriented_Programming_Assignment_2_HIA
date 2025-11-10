@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using JIDS.Data;
 using JIDS.Repositories;
 using Microsoft.EntityFrameworkCore;
-using JIDS;
 
 namespace JIDS
 {
@@ -44,7 +44,56 @@ namespace JIDS
             var authRepository = new AuthRepository(dbContext);
             Application.Current.Resources["AuthRepository"] = authRepository;
 
-            // Show MainWindow as the root window..
+            // --- dev/test user seeding (insert after creating 'dbContext' and 'authRepository') ---
+            // Decide whether to seed: DEBUG builds OR environment variable set to "1"
+            bool shouldSeed = false;
+#if DEBUG
+            shouldSeed = true;
+#endif
+            var seedEnv = Environment.GetEnvironmentVariable("JIDS_SEED_USER");
+            if (!string.IsNullOrEmpty(seedEnv) && seedEnv == "1")
+                shouldSeed = true;
+
+            if (shouldSeed)
+            {
+                try
+                {
+                    // Only seed when Users table is empty to avoid clobbering existing data
+                    if (!dbContext.Users.Any())
+                    {
+                        const string devUser = "tester";
+                        const string devEmail = "tester@example.com";
+                        const string devPassword = "Test123!";
+
+                        // Register synchronously here for startup convenience (development only)
+                        authRepository.RegisterUserAsync(devUser, devEmail, devPassword).GetAwaiter().GetResult();
+
+                        // Optional: write to console so tester sees it in VS Output / logs
+                        Console.WriteLine($"[DEV] Seeded user: {devUser} / {devPassword}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("[DEV] Seeding failed: " + ex);
+                }
+            }
+            // --- end seeding ---
+
+            // DEBUG: show current users in DB so you can confirm the seeded account exists
+#if DEBUG
+            try
+            {
+                var users = dbContext.Users.Select(u => new { u.Username, u.Email }).ToList();
+                var msg = users.Any() ? $"Users in DB:\n{string.Join("\n", users.Select(u => $"{u.Username} ({u.Email})"))}" : "No users found in DB.";
+                MessageBox.Show(msg, "DB Users (debug)", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to read users: {ex.Message}", "DB Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+#endif
+
+            // Show MainWindow as the root window.
             var mainWindow = new MainWindow();
             mainWindow.Show();
         }

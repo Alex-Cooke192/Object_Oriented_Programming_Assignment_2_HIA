@@ -44,6 +44,7 @@ namespace JIDS.ViewModels
         public ICommand AddComponentCommand { get; }
         public ICommand RemoveComponentCommand { get; }
         public ICommand CloneCommand { get; }
+        public ICommand ReviewCommand { get; } // added: command to open Summary
 
         private readonly bool _isNew;
 
@@ -64,6 +65,7 @@ namespace JIDS.ViewModels
             AddComponentCommand = new RelayCommand(_ => AddComponent());
             RemoveComponentCommand = new RelayCommand(_ => RemoveSelectedComponent(), _ => SelectedComponent != null);
             CloneCommand = new RelayCommand(async _ => await CloneAsync(), _ => existing != null);
+            ReviewCommand = new RelayCommand(_ => Review()); // initialize review command
 
             if (existing != null)
             {
@@ -237,6 +239,44 @@ namespace JIDS.ViewModels
             catch (Exception ex)
             {
                 StatusMessage = $"Clone failed: {ex.Message}";
+            }
+        }
+
+        // New: build a snapshot and navigate to Summary
+        private void Review()
+        {
+            try
+            {
+                var finalId = ConfigID;
+                var snapshot = new JetConfiguration
+                {
+                    ConfigID = finalId,
+                    UserID = _session?.CurrentUser?.UserID ?? Guid.Empty,
+                    Name = Name,
+                    CabinDimensions = CabinDimensions,
+                    SeatingCapacity = SeatingCapacity,
+                    Version = _isNew ? 1 : (int?)null,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    InteriorComponents = InteriorComponents.Select(c => new InteriorComponent
+                    {
+                        ComponentID = c.ComponentID,
+                        ConfigID = finalId,
+                        Name = c.Name,
+                        Type = c.Type,
+                        Tier = c.Tier,
+                        Material = c.Material,
+                        Position = c.Position,
+                        PropertiesJson = c.PropertiesJson,
+                        CreatedAt = c.CreatedAt == default ? DateTime.UtcNow : c.CreatedAt
+                    }).ToList()
+                };
+
+                _navigation?.NavigateTo("Summary", snapshot);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Review failed: {ex.Message}";
             }
         }
 

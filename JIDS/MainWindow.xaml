@@ -15,8 +15,6 @@
 		<DockPanel Grid.Row="0" Background="#726363" Height="48" VerticalAlignment="Top">
 			<TextBlock Text="JIDS" FontWeight="Bold" Foreground="White" FontSize="18" Margin="12,0" VerticalAlignment="Center" DockPanel.Dock="Left"/>
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0" DockPanel.Dock="Right">
-				<TextBox x:Name="SearchBox" Width="260" Height="28" VerticalAlignment="Center" Margin="0,0,8,0" />
-				<Button x:Name="BtnNew" Content="New" Width="72" Margin="0,0,6,0" />
 				<Button x:Name="BtnLogout" Content="Logout" Width="80" />
 			</StackPanel>
 		</DockPanel>
@@ -31,12 +29,11 @@
 			<!-- Navigation pane -->
 			<Border Grid.Column="0" Background="#726363" BorderBrush="#FFE0E0E0" BorderThickness="0,1,1,1">
 				<StackPanel Margin="12">
-					<TextBlock Text="Navigation" FontWeight="SemiBold" Foreground="White" Margin="0,4" />
+					<TextBlock Text="Navigation" FontWeight="SemiBold" Margin="0,4" />
 					<ListBox x:Name="NavList" Margin="0,8,0,0">
 						<ListBoxItem Tag="Login">Login</ListBoxItem>
 						<ListBoxItem Tag="ConfigurationList">Configurations</ListBoxItem>
 						<ListBoxItem Tag="ConfigurationEditor">Editor</ListBoxItem>
-						<ListBoxItem Tag="Summary">Summary</ListBoxItem>
 					</ListBox>
 				</StackPanel>
 			</Border>
