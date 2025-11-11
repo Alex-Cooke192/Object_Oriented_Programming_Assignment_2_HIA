@@ -1,0 +1,194 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\integrationverification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\integrationverification.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\integrationtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\integrationtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\regressiontests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\regressiontests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\acceptancetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\acceptancetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\systemvalidationtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\systemvalidationtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\testplan.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\testplan.md||{EFC0BB08-EA7D-40C6-A696-C870411A895B}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\defectlog.md||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\defectlog.md||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\tests_qa.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\tests_qa.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\enhancementtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\enhancementtests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|c:\\users\\hannah.tchibinda\\source\\repos\\object_oriented_programming_assignment_2_hia-main\\object_oriented_programming_assignment_2_hia-main\\tests_qa\\validationandboundarytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{72D7FD1E-A6C4-4538-A4E8-8CAE30CAE955}|Tests_QA\\Tests_QA.csproj|solutionrelative:tests_qa\\validationandboundarytests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "RegressionTests.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\RegressionTests.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\RegressionTests.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\RegressionTests.cs",
+              "RelativeToolTip": "Tests_QA\\RegressionTests.cs",
+              "ViewState": "AgIAAAcAAAAAAAAAAAA0wB4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T02:28:48.679Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "IntegrationTests.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\IntegrationTests.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\IntegrationTests.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\IntegrationTests.cs",
+              "RelativeToolTip": "Tests_QA\\IntegrationTests.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T03:53:41.048Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "IntegrationVerification.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\IntegrationVerification.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\IntegrationVerification.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\IntegrationVerification.cs",
+              "RelativeToolTip": "Tests_QA\\IntegrationVerification.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAcwCcAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T02:28:41.431Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AcceptanceTests.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\AcceptanceTests.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\AcceptanceTests.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\AcceptanceTests.cs",
+              "RelativeToolTip": "Tests_QA\\AcceptanceTests.cs",
+              "ViewState": "AgIAABAAAAAAAAAAAAAgwBsAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T02:28:04.562Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "SystemValidationTests.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\SystemValidationTests.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\SystemValidationTests.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\SystemValidationTests.cs",
+              "RelativeToolTip": "Tests_QA\\SystemValidationTests.cs",
+              "ViewState": "AgIAABsAAAAAAAAAAAAwwDEAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T02:28:54.17Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "TestPlan.md",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\TestPlan.md",
+              "RelativeDocumentMoniker": "Tests_QA\\TestPlan.md",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\TestPlan.md",
+              "RelativeToolTip": "Tests_QA\\TestPlan.md",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAiwDUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-11-11T04:00:29.738Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "DefectLog.md",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\DefectLog.md",
+              "RelativeDocumentMoniker": "Tests_QA\\DefectLog.md",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\DefectLog.md",
+              "RelativeToolTip": "Tests_QA\\DefectLog.md",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001818|",
+              "WhenOpened": "2025-11-11T05:47:55.006Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Tests_QA",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\Tests_QA.csproj",
+              "RelativeDocumentMoniker": "Tests_QA\\Tests_QA.csproj",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\Tests_QA.csproj",
+              "RelativeToolTip": "Tests_QA\\Tests_QA.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABkAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-11-11T05:20:18.224Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "EnhancementTests.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\EnhancementTests.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\EnhancementTests.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\EnhancementTests.cs",
+              "RelativeToolTip": "Tests_QA\\EnhancementTests.cs",
+              "ViewState": "AgIAAAgAAAAAAAAAAAAcwB8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T02:28:16.625Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ValidationAndBoundaryTests.cs",
+              "DocumentMoniker": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\ValidationAndBoundaryTests.cs",
+              "RelativeDocumentMoniker": "Tests_QA\\ValidationAndBoundaryTests.cs",
+              "ToolTip": "C:\\Users\\hannah.tchibinda\\source\\repos\\Object_Oriented_Programming_Assignment_2_HIA-main\\Object_Oriented_Programming_Assignment_2_HIA-main\\Tests_QA\\ValidationAndBoundaryTests.cs",
+              "RelativeToolTip": "Tests_QA\\ValidationAndBoundaryTests.cs",
+              "ViewState": "AgIAADEAAAAAAAAAAAAcwD4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-11-11T02:36:39.549Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{56df62a4-05a3-4e5b-aa1a-99371ccfb997}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
